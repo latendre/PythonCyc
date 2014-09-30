@@ -40,6 +40,9 @@ def convertLispIdtoPythonId(s):
 
 class PFrame():
     """
+    Note: This is a documentation summary. For a more complete documentation, 
+    please consult the web page at http://brg.ai.sri.com/ptools/pythoncyc.html.
+
     PFrame is a class to represent Pathway Tools' frames. A PFrame can
     represent a class frame (e.g., Reactions) as well as an instance frame
     (e.g., RXN-9000). 

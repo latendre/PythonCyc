@@ -100,7 +100,8 @@ def prepareFnCall(fn, *args, **kwargs):
 
 class PGDB():
     """
-    Note: for a more complete documentation, please consult the web page TBD.
+    Note: This is a documentation summary. For a more complete documentation, 
+    please consult the web page at http://brg.ai.sri.com/ptools/pythoncyc.html.
     
     A PGDB object represents a Pathway Tools PGDB (Pathway/Genome Database).
     A PGDB object is created when one of the global methods 'so' or
@@ -151,7 +152,6 @@ class PGDB():
     The first form uses Python's syntax to access an attribute of an object. The second
     form uses indexing. The attribute name is converted to the real slot name of Pathway
     Tools which uses dashes, not underscores, and all letters are converted to upper case.
-    The string used in the second form, the indexing syntax, is never converted.
     Naturally, attribute names in Python cannot use dashes, so PythonCyc allows the use
     of underscores instead of the dashes as used by Pathway Tools.
 
