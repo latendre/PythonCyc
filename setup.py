@@ -29,9 +29,9 @@ setup(
     name='PythonCyc',
     version='1.0',
     author='Mario Latendresse',
-    author_email='',
+    author_email='latendre@ai.sri.com',
     packages=['pythoncyc'],
-    license='LICENSE.txt',
+    license='LICENSE',
     description='A Python interface to Pathway Tools',
-    long_description=open('README.txt').read()
+    long_description=open('README').read()
     )

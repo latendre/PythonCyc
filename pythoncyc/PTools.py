@@ -34,7 +34,7 @@ import sys
 import socket as so
 import json
 import time
-import pythoncyc.config as config
+import config
 
 def recvAll(s):
     """

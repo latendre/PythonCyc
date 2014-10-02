@@ -25,7 +25,6 @@ For the documentation of this module, see class PGDB below.
 
 """
 
-
 import PTools
 import sys
 import config 

@@ -26,8 +26,8 @@ See class PFrame below for most of the documentation about this module.
 """
 
 import sys
+import config
 from PTools import PToolsError, PythonCycError
-import pythoncyc.config as config
 if 'IPython' in sys.modules:
     from IPython.display import display, HTML
 

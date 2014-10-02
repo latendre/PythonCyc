@@ -37,7 +37,7 @@ In fact, two of these functions, select_organism and
 its synonym so, are needed to "select" a PGDB by creating a PGDB object.
 See class PGDB in PGDB.py for information about how to use a PGDB object.
 
-See the README.txt file for more information about PythonCyc.
+See the README file for more information about PythonCyc.
 
 """
 
