@@ -397,9 +397,10 @@ class PGDB():
 
     def save_pgdb(self):
         """
-        Save a PGDB that has been modified in the Pathway Tools.
+        Save a PGDB that has been modified in the running Pathway Tools server.
+        The PGDB that will be saved is based on the orgid of this PGDB object.
         """
-        return self.sendPgdbFnCallBool('save-kb', self._orgid)
+        return self.sendPgdbFnCallBool('save-kb')
         
     def get_major_classes(self):
         """
