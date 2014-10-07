@@ -29,16 +29,29 @@ import PTools
 import sys
 import config 
 from PTools import PToolsError, PythonCycError
-from PToolsFrame import PFrame, convertLispIdtoPythonId
+from PToolsFrame import Symbol, PFrame, convertLispIdtoPythonId
 if 'IPython' in sys.modules:
     from IPython.display import display, HTML
 
+def may_be_frameid(x):
+    if x == None:
+        return None
+    elif isinstance(x,list):
+        return [may_be_frameid(y) for y in x]
+    if isinstance(x,PFrame):
+        return x
+    elif isinstance(x,basestring):
+        return Symbol(x)
+    else: raise PythonCycError('Error: may_be_frameid does not know how to convert {0}.'.format(x))
+
+
 def mkey(s):
-   """ A simple function to convert a string into a Lisp keyword.
-       Argument
-          s, any Python object
-       Return
-          if s is a string, the string s suffixed by ':', otherwise s itself.
+   """ 
+   A simple function to convert a string into a Lisp keyword.
+   Argument
+       s, any Python object
+   Return
+       if s is a string, the string s suffixed by ':', otherwise s itself.
    """
    if isinstance(s,basestring):
       return ':'+s
@@ -46,32 +59,40 @@ def mkey(s):
 
 def convertArgToLisp(arg, inquote=False):
     """
-    Convert the arg into an acceptable quoted object for Python server running on
-    Pathway Tools.
-    No general Lisp expression can be sent to the Pathway Tools Python server so that arg
-    cannot be a general expression but only either a string, a symbol, a Boolean, a number
-    or a quoted list.
+    Convert the arg into an acceptable quoted object for Python server
+    running on Pathway Tools. Note that any list is converted to 
+    a quoted Lisp list.
 
     Argument
        arg,     a PFrame, a string, a number, a boolean, None or an s-expr.
        inquote, a Boolean, True => this arg is inside an already quoted expression.
     Return
        a string, the arg is transformed to be acceptable for the Python Lisp server.
-
     """
+    if isinstance(arg, Symbol):
+        return ("" if inquote else "'")+arg._name
     # Type basestring includes string and unicode string.
-    if isinstance(arg, basestring):
-        # It is either a symbol, a string or a keyword: in all these
-        # cases a quote is either a no-op or is needed (e.g., symbol).
-        return ("" if (inquote or arg.startswith(':')) else "'")+arg
+    elif isinstance(arg, basestring):
+        # It is either a symbol, a string or a keyword.
+        # If it starts and ends with '|', assumes it is a symbol and add
+        # a quote if not already in a quoted context otherwise just
+        # translates to a string.
+        # The tests for symbols and keywords are simplified 
+        # because if a tab or any characters not representing a Lisp
+        # keyword or symbols is embedded in the string, it is not detected.
+        if arg[0] == '|' and arg[-1] == '|' and not (' ' in arg):
+            return ("" if inquote else "'")+arg
+        elif arg[0] == ':' and not (' ' in arg):
+            return arg
+        else: return '"'+arg+'"'
+    # Note: False and True are also of type int. 
+    #       So, do this test before isinstance(... (int))
+    elif isinstance(arg, bool):
+        return 't' if arg else 'nil'
+    elif arg == None:
+        return 'nil'
     elif isinstance(arg, (int, long, float, complex)):
         return str(arg)
-    # Note: False is equal to 0 and True is equal to 1, but the previous
-    #       test processed all numerical values.
-    elif arg == True:
-        return 't'
-    elif arg == None or arg == False:
-        return 'nil'
     elif isinstance(arg, PFrame):
         # Just using the frameid is enough (there is no need to
         # refer to the PGDB) because the arg is used in a call 
@@ -80,6 +101,19 @@ def convertArgToLisp(arg, inquote=False):
     elif isinstance(arg, list):
         return (("" if inquote else "'") + 
                 '('+' '.join(convertArgToLisp(e,inquote=True) for e in arg) + ')')
+    elif isinstance(arg, dict):
+        # Convert a dictionary into a list of lists.
+        # {'a':2, 'b':3} => (('a' . 2) ('b' . 3))
+        return convertArgToLisp(dict.items(arg))
+    elif isinstance(arg, tuple):
+        # A Python tuple becomes an improper list in Lisp
+        # (1,)    => (NIL . 1)
+        # (1,2)   => (1 . 2)
+        # (1,2,3) => (1 2 . 3)
+        return (("" if inquote else "'") + 
+                '('+(' '.join(convertArgToLisp(e,inquote=True) for e in arg[0:-1]) if (len(arg)>1) else '()') + ' . ' 
+                + convertArgToLisp(arg[-1],inquote=True) + ')')
+    else: raise PythonCycError('PythonCyc does not know how to convert to Lisp the Python argument {0}.'.format(arg))
 
 def prepareFnCall(fn, *args, **kwargs):
     """
@@ -99,110 +133,128 @@ def prepareFnCall(fn, *args, **kwargs):
 
 class PGDB():
     """
-    Note: This is a documentation summary. For a more complete documentation, 
-    please consult the web page at http://brg.ai.sri.com/ptools/pythoncyc.html.
+    Note: This is a summary. For a more complete documentation, please
+    consult the web page at
+    http://brg.ai.sri.com/ptools/pythoncyc.html.
     
-    A PGDB object represents a Pathway Tools PGDB (Pathway/Genome Database).
-    A PGDB object is created when one of the global methods 'so' or
-    'select_organism' are called. See file __init__.py for the definitions of
-    these methods.
-    For example,
+    A PGDB object represents a Pathway Tools PGDB (Pathway/Genome
+    Database).  A PGDB object is created when one of the global
+    methods 'so' or 'select_organism' are called. See file __init__.py
+    for the definitions of these methods. For example, the Python
+    statement
     
-     meta = pythoncyc.so('meta')
+      meta = pythoncyc.so('meta')
     
-    creates a PGDB object, that refers to Pathway Tools database (PGDB) MetaCyc,
-    and assign it to variable meta. The 'meta' string is the orgid of that PGDB.
+    creates a PGDB object that refers to the MetaCyc Pathway Genome
+    database (PGDB), and assign it to variable meta. The 'meta' string
+    is the orgid of that PGDB.
     
-    A PGDB object is used to communicate with Pathway Tools to retrieve frames and other
-    data of the corresponding PGDB. For example, after creating the meta object above,
-    the following will retrieve compound TRP (i.e., L-tryptophan) and assign it
-    to variable trp ('TRP' is the frame id of compound L-tryptophan):
+    A PGDB object is used to communicate with Pathway Tools to
+    retrieve frames and other data of the corresponding PGDB. For
+    example, after creating the meta object above, the following
+    retrieves compound TRP (i.e., L-tryptophan) and assign it to
+    variable trp ('TRP' is the frame id of this compound but in 
+    PythonCyc we can use lower case letters when using a Python 
+    attribute)
     
       trp = meta.trp
     
     The operation meta.trp, if done for the first time, triggers a
-    call to Pathway Tools to transfer the data of compound trp: the slots and their data
-    are transferred locally to create a PFrame to represent the compound trp. (Note:
-    the real name in Pathway Tools of the frame id of compound trp is in upper case, that is,
-    'TRP'. More on this conversion below.)
+    call to Pathway Tools to send the complete frame object of
+    compound trp stored in Metacyc: the slots and their data are sent
+    back and a PFrame to represent the compound trp is created. A slot
+    in a data frame of Pathway Tools becomes an attribute of a PFrame
+    object in PythonCyc.
 
-    In PythonCyc, frame ids are strings prefixed and suffixed by '|', such as
+    In PythonCyc, frame ids are shown prefixed and suffixed by '|', such as
 
            print trp.frameid
        =>  |TRP|
 
-    The '|...|' is used to indicate that this string represents a frame id and can be
-    interpreted by Pathway Tools as a frame id. In Lisp, the programming language used
-    by Pathway Tools, the double vertical bars signify that this is a symbol and that
-    it must be read exactly as given without any transformation (e.g., no upper case
+    The '|...|' is used to indicate that this string represents a
+    frame id and can be interpreted by Pathway Tools as a frame id. In
+    Lisp, the programming language used by Pathway Tools, the double
+    vertical bars signify that this is a symbol and that it must be
+    read exactly as given without any transformation (e.g., no case
     conversion on letters).
 
-    This PFrame for trp is also bound to the PGDB meta. That is, executing meta.trp again
-    will not retrieve the data from Pathway Tools, but simply used the PFrame already
-    created for it.
+    This PFrame for trp is also bound to the PGDB meta. That is,
+    executing meta.trp again would not retrieve the data from Pathway
+    Tools, but use the PFrame already created for it.
 
-    The slots of a frame can be referenced in several ways, for example to retrieve
-    the slot 'common-name':
+    The attributes of a PFrame can be referenced in several ways, for
+    example to retrieve the attribute 'common-name':
 
        1) trp.common_name
 
        2) trp['COMMON-NAME']
 
-    The first form uses Python's syntax to access an attribute of an object. The second
-    form uses indexing. The attribute name is converted to the real slot name of Pathway
-    Tools which uses dashes, not underscores, and all letters are converted to upper case.
-    Naturally, attribute names in Python cannot use dashes, so PythonCyc allows the use
-    of underscores instead of the dashes as used by Pathway Tools.
+    The first form uses Python's syntax to access an attribute of an
+    object. The second form uses indexing. The attribute name is
+    converted to the real slot name of Pathway Tools which uses
+    dashes, not underscores, and all letters are converted to upper
+    case.  Naturally, attribute names in Python cannot use dashes, so
+    PythonCyc allows the use of underscores instead of the dashes as
+    used by Pathway Tools.
 
-    Many more operations can be done using a PGDB object, such as retrieving
-    classes of objects (e.g., reactions, pathways, genes) or calling one of the more
-    than 150 methods listed below. For example, retrieveing all reactions can be done by
+    Many more operations can be done using a PGDB object, such as
+    retrieving classes of objects (e.g., reactions, pathways, genes)
+    or calling one of the more than 150 methods listed below. For
+    example, retrieving all reactions can be done by
 
       reactions = meta.reactions
 
-    which assigns to variable reactions a PFrame representing the class of reactions from
-    PGDB meta. This PFrame has an attribute 'instances' assigned with the list of all reaction
-    instances of meta. Each such reaction is a PFrame, although these PFrames have no other
-    data than the frame id of each reaction. Also, all these PFrames are bound to PGDB meta.
+    which assigns to variable reactions a PFrame representing the
+    class of reactions from PGDB meta. This PFrame has an attribute
+    'instances' assigned with the list of all reaction instances of
+    meta. Each such reaction is a PFrame, although these PFrames have
+    no other data than the frame id of each reaction. Also, all these
+    PFrames are bound to PGDB meta.
     
-    The operation meta.reactions differs from using the method all_reactions. The operation
+    The operation meta.reactions differs from using the method
+    all_reactions. The operation
 
        meta.all_reactions(type='all')
 
-    returns all reaction frame ids in PGDB meta. It does not create any PFrame. A second
-    call meta.all_reactions(type='all') will request again the list of frame ids from
-    Pathway Tools. This is not the case for meta.reactions where only one request will
-    be made. The call to method all_reactions is usefull if indeed no PFrame should be created
-    and only the frame ids are needed. This discussion is similar for almost all methods listed
-    below where in most cases the return value is not a PFrame or a list of PFrames.
+    returns all reaction frame ids in PGDB meta. It does not create
+    any PFrame. A second call meta.all_reactions(type='all') will
+    request again the list of frame ids from Pathway Tools. This is
+    not the case for meta.reactions where only one request will be
+    made. The call to method all_reactions is useful if indeed no
+    PFrame should be created and only the frame ids are needed. This
+    discussion is similar for almost all methods listed below where in
+    most cases the return value is not a PFrame or a list of PFrames.
 
-    Many Lisp functions can be called using Python's syntax. These functions often need a frame
-    identifier. A frame identifier can be given as a string or as PFrame object.
-    For example,
+    Many Lisp functions can be called using Python's syntax. These
+    functions often need a frame identifier. A frame identifier can be
+    given as a string or as PFrame object.  For example,
 
         meta.reactions_of_compound('TRP')
 
-    where 'TRP' is the frame id of compound L-tryptophan.
-    Or using the trp variable assigned above (which is a PFrame with frame id 'TRP')
+    where 'TRP' is the frame id of compound L-tryptophan.  Or using
+    the trp variable assigned above (which is a PFrame with frame id
+    'TRP')
 
         meta.reactions_of_compound(trp)
 
-    Note that, if the given frame id does not exist in the PGDB, it will raise a
-    PToolsError in Python because Pathway Tools itself will report a 'non coercible frame'. 
+    Note that, if the given frame id does not exist in the PGDB, it
+    will raise a PToolsError in Python because Pathway Tools itself
+    will report a 'non coercible frame'.
 
-    Some functions have keywords arguments, which are always optional. But notice
-    that the default value is often None. The value None is not translated to False, but
-    indicates to use the default value of the Lisp function called. These defaults
-    are given for each function listed below.
-   
+    Some functions have keywords arguments, which are always
+    optional. But notice that the default value is often None. The
+    value None is not translated to False, but indicates to use the
+    default value of the Lisp function called. These defaults are
+    given for each function listed below.
     """
 
     def __init__(self, orgid):
         """
-        Once a PGDB object is created, it has been validated that the organism (orgid)
-        exists on the running Pathway Tools server.
-        From that PGDB object (e.g. ecoli), many classes of objects can be retrieved by using 
-        the attribute syntax of Python, such as ecoli.reactions.
+        Once a PGDB object is created, it has been validated that the
+        organism (orgid) exists on the running Pathway Tools server.
+        From that PGDB object (e.g. ecoli), many classes of objects
+        can be retrieved by using the attribute syntax of Python, such
+        as ecoli.reactions.
         """
         if config._debug:
             print "PGDB __init__"
@@ -235,7 +287,7 @@ class PGDB():
         self.__dict__ = dict
         
     def __repr__(self):
-        return self._orgid
+        return self.__str__()
 
     def __str__(self):
         return '<PGDB '+self._orgid+', currently has '+str(self._nb_pframes())+' PFrames>'
@@ -262,12 +314,13 @@ class PGDB():
 
     def __getattr__(self, attr):
         """
-        Attributes for a PGDB may refer to frame ids. A frame id that has dashes
-        in Pathway Tools, is converted to attribute with underscores '_' instead.
-        If an attribute does not exist
-        yet, a request to Pathway Tools is done to verify if it may exist as an instance
-        or as a class. PFrame instances and classes are created automatically when the
-        corresponding instances or classes exist in the PGDB.
+        Attributes for a PGDB may refer to frame ids. A frame id that
+        has dashes in Pathway Tools, is converted to attribute with
+        underscores '_' instead.  If an attribute does not exist yet,
+        a request to Pathway Tools is done to verify if it may exist
+        as an instance or as a class. PFrame instances and classes are
+        created automatically when the corresponding instances or
+        classes exist in the PGDB.
         """
         if config._debug:
             print "PGDB ",self._orgid, "__getattr__", attr
@@ -275,8 +328,6 @@ class PGDB():
         attrId = convertLispIdtoPythonId(attr)
         if attrId in self.__dict__:
            return self.__dict__[attrId]
-        # if attr.startswith('_'):
-        #    return None
         if isinstance(attr,int):
            return self._frames[attr]
         if attrId in self._frames:
@@ -344,6 +395,12 @@ class PGDB():
     def __ne__(self, o):
         return not self.__eq__(o)
 
+    def save_pgdb(self):
+        """
+        Save a PGDB that has been modified in the Pathway Tools.
+        """
+        return self.sendPgdbFnCallBool('save-kb', self._orgid)
+        
     def get_major_classes(self):
         """
         Get from Pathway Tools the classes Reactions, Pathways, Genes,
@@ -372,7 +429,6 @@ class PGDB():
            query, a string. That string should be acceptable to the Lisp Python server.
         Return
            the result (as a Pyton object) of the execution of the query in Pathway Tools.
-            
         """
         # Evaluate a query in the context of this PGDB.
         if self._orgid == "unknown":
@@ -432,7 +488,7 @@ class PGDB():
         Retrieve the class slots and their values, creating a PFrame for the class.
         Retrieve also the list of instances from Pathway Tools and
         create a PFrame for each instance. Store the list of PFrames
-        in attribute 'instances' of the class object. If getInstanceData is True,
+        in attribute 'instances' of the class object. If getInstancesData is True,
         get also all instances slots and their data. 
 
         Arguments
@@ -470,7 +526,7 @@ class PGDB():
         Return
             list of PFrames, one for each frame id.
         """
-        frameObjects = self.sendPgdbFnCallList('get-frame-objects', frameids)
+        frameObjects = self.sendPgdbFnCallList('get-frame-objects', may_be_frameid(frameids))
         pframes = []
         for frameid, slotsData in frameObjects.iteritems():
             attrID = convertLispIdtoPythonId(frameid)
@@ -486,10 +542,11 @@ class PGDB():
         return pframes
                
     def is_an_instance_name(self, frameid):
-        """ As method is_a_class_name but for frame objects (instances).
-            If frame id is a real frame id of an object of this PGDB, returns it as is.
-            If not, try to convert it to a real frame id by transforming cases of
-            letters and underscores to dashes.
+        """ 
+        Similar to method is_a_class_name but for frame objects (instances).
+        If frame id is a real frame id of an object of this PGDB, returns it as is.
+        If not, try to convert it to a real frame id by transforming cases of
+        letters and underscores to dashes.
 
             Argument
                frameid, a string.
@@ -497,7 +554,7 @@ class PGDB():
             Returns
                a string representing an existing frame in the PGDB.
         """
-        return self.sendPgdbFnCallBool('frameid-instance-p', frameid)
+        return self.sendPgdbFnCallBool('frameid-instance-p', Symbol(frameid))
 
     def get_class_all_instances(self, className):
         """
@@ -511,7 +568,7 @@ class PGDB():
           Returns
             list of frameids
         """
-        return self.sendPgdbFnCallList('gcai', className)
+        return self.sendPgdbFnCallList('gcai', Symbol(className))
 
     def run_fba(self, fileName):
        """
@@ -537,7 +594,7 @@ class PGDB():
              7) The list of reactions that were in the model after instantiation
              8) The list of reactions that were active (non zero flux) with their fluxes
        """
-       return self.sendPgdbFnCall('python-run-fba', '"'+fileName+'"')
+       return self.sendPgdbFnCall('python-run-fba', fileName)
 
     def get_slot_values(self, frameid, slotName):
        """
@@ -557,7 +614,7 @@ class PGDB():
                meta.get_slot_values('RXN-9000', 'LEFT')
            where meta is a variable bound to a PGDB object.
        """
-       return self.sendPgdbFnCallList('get-slot-values', frameid, slotName)
+       return self.sendPgdbFnCallList('get-slot-values', Symbol(frameid), Symbol(slotName))
 
     def put_slot_values(self, frameid, slotName, val):
        """
@@ -583,7 +640,7 @@ class PGDB():
            To put the substrates participating on the left of reaction RXN-9000:
                put_slot_values('RXN-9000', 'LEFT', ['CPD-9459','CPD-9460'])
        """
-       return self.sendPgdbFnCall('put-slot-values', frameid, slotName, val)
+       return self.sendPgdbFnCallList('put-slot-values', Symbol(frameid), Symbol(slotName), val)
 
     def put_slot_value(self, frameid, slotName, val):
        """
@@ -611,7 +668,7 @@ class PGDB():
            To put the Gibbs free energy of reaction RXN-9000:
                put_slot_value('RXN-9000', 'GIBBS-0', 7.52)
        """
-       return self.sendPgdbFnCall('put-slot-value', frameid, slotName, val)
+       return self.sendPgdbFnCall('put-slot-value', Symbol(frameid), Symbol(slotName), val)
 
     def get_slot_value(self, frameid, slotName):
        """
@@ -625,7 +682,7 @@ class PGDB():
            To get the substrates participating on the left of reaction RXN-9000:
                get_slot_values('RXN-9000', 'LEFT')
        """
-       return self.sendPgdbFnCall('get-slot-value', frameid, slotName)
+       return self.sendPgdbFnCall('get-slot-value', Symbol(frameid), Symbol(slotName))
 
     # The documentation of the following functions come from the web page
     # http://brg.ai.sri.com/ptools/api/
@@ -729,7 +786,7 @@ class PGDB():
           as the left and right slots of a reaction frame can
           contain strings. 
       """
-      return self.sendPgdbFnCallList('all-substrates', rxns)
+      return self.sendPgdbFnCallList('all-substrates', may_be_frameid(rxns))
  
     def all_cofactors(self):
       """
@@ -798,7 +855,6 @@ class PGDB():
           None. 
       Return value
           A list of instances of class Proteins. 
-  
       """
       return self.sendPgdbFnCallList('all-transporters')
  
@@ -896,7 +952,7 @@ class PGDB():
           of regulation. 
       """
       kwargs = {'allow-modified-forms': allow_modified_forms,
-                'class' : class_name}
+                'class' : Symbol(class_name)}
       return self.sendPgdbFnCallList('all_genetic_regulation_proteins', **kwargs)
   
   
@@ -917,7 +973,7 @@ class PGDB():
           A list of A list of instances of the class Reactions with
           isozymes. 
       """
-      kwargs = {'rxns': rxns}
+      kwargs = {'rxns': may_be_frameid(rxns)}
       return self.sendPgdbFnCallList('rxns-w-isozymes', **kwargs)
   
     def rxns_catalyzed_by_complex(self, rxns=None):
@@ -937,7 +993,7 @@ class PGDB():
           A list of instances of the class Reactions with a protein
           complex as an enzyme. 
       """
-      kwargs = {'rxns': rxns}
+      kwargs = {'rxns': may_be_frameid(rxns)}
       return self.sendPgdbFnCallList('rxns-catalyzed-by-complex', **kwargs)
   
     def all_enzymes(self, type=None):
@@ -975,7 +1031,7 @@ class PGDB():
        Return value
            A list of instances of class Genes. 
        """
-       return self.sendPgdbFnCallList('genes-of-reaction', rxn)
+       return self.sendPgdbFnCallList('genes-of-reaction', may_be_frameid(rxn))
    
     def substrates_of_reaction(self, rxn):
        """
@@ -992,7 +1048,7 @@ class PGDB():
            A list that may consist of children of class Compounds,
            children of class Polymer-Segments, or strings. 
        """
-       return self.sendPgdbFnCallList('substrates-of-reaction', rxn)
+       return self.sendPgdbFnCallList('substrates-of-reaction', may_be_frameid(rxn))
    
     def enzymes_of_reaction(self, rxn, species=None, experimental_only=None, local_only=None):
        """
@@ -1027,7 +1083,7 @@ class PGDB():
        kwargs = {'species':             species,   
                  'experimental-only?':  experimental_only,
                  'local-only-p':        local_only}
-       return self.sendPgdbFnCallList('enzymes-of-reaction', rxn, **kwargs)
+       return self.sendPgdbFnCallList('enzymes-of-reaction', may_be_frameid(rxn), **kwargs)
   
     def reaction_reactants_and_products(self, rxn, direction=None, pwy=None):
       """
@@ -1042,7 +1098,7 @@ class PGDB():
       Arguments
   
           rxn
-              An instance of the class Reactions, a frame id or PFrame. 
+              An instance of the class Reactions, that is,  a frame id or PFrame. 
           direction
               Keyword, Can take on the following values:
   
@@ -1067,8 +1123,8 @@ class PGDB():
           class Compounds, children of class Polymer-Segments, or
           strings. 
       """
-      kwargs = {'direction': direction, 'pwy': pwy}
-      return self.sendPgdbFnCall('reaction-reactants-and-products', rxn, **kwargs)
+      kwargs = {'direction': direction, 'pwy': may_be_frameid(pwy)}
+      return self.sendPgdbFnCall('reaction-reactants-and-products', may_be_frameid(rxn), **kwargs)
   
     def reaction_type(self, rxn):
       """
@@ -1101,7 +1157,7 @@ class PGDB():
           'other'
               None of the preceding cases apply. 
       """
-      return self.sendPgdbFnCall('reaction-type', rxn)
+      return self.sendPgdbFnCall('reaction-type', may_be_frameid(rxn))
   
     def rxn_without_sequenced_enzyme_p(self, rxn, complete=None):
       """
@@ -1111,7 +1167,7 @@ class PGDB():
       Arguments
   
           rxn
-              An instance of the class Reactions, a frame id or PFrame. 
+              An instance of the class Reactions, that is, a frame id or PFrame. 
           complete
               Keyword, if True, the predicate will return True when there
               is any associated gene without a sequence. If False, the
@@ -1123,7 +1179,7 @@ class PGDB():
           A boolean value. 
       """
       kwargs = {'complete': complete}
-      return self.sendPgdbFnCallBool('rxn-without-sequenced-enzyme-p', rxn, complete)
+      return self.sendPgdbFnCallBool('rxn-without-sequenced-enzyme-p', may_be_frameid(rxn), **kwargs)
   
     def pathway_hole_p(self, rxn, hole_if_any_gene_without_position=None):
       """
@@ -1145,7 +1201,7 @@ class PGDB():
           A boolean value. 
       """
       kwargs = {'hole-if-any-gene-without-position?': hole_if_any_gene_without_position}
-      return self.sendPgdbFnCallBool('pathway-hole-p', rxn, **kwargs)
+      return self.sendPgdbFnCallBool('pathway-hole-p', may_be_frameid(rxn), **kwargs)
   
     def rxn_present_p(self, rxn):
       """
@@ -1155,14 +1211,14 @@ class PGDB():
       Arguments
   
           rxn
-              An instance of the class Reactions, a frame id or PFrame. 
+              An instance of the class Reactions, that is, a frame id or PFrame. 
   
       Side-Effects
           None. 
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('rxn-present-p', rxn)
+      return self.sendPgdbFnCallBool('rxn-present-p', may_be_frameid(rxn))
   
     def rxn_specific_form_of_rxn_p(self, specific_rxn, generic_rxn):
       """
@@ -1172,16 +1228,16 @@ class PGDB():
       Arguments
   
           specific_rxn
-              A child of the class Reactions, a frame id or PFrame. 
+              A child of the class Reactions, that is, a frame id or PFrame. 
           generic_rxn
-              A child of the class Reactions, a frame id or PFrame. 
+              A child of the class Reactions, that is, a frame id or PFrame. 
   
       Side-Effects
           None. 
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('rxn-specific-form-of-rxn-p', specific_rxn, generic_rxn)
+      return self.sendPgdbFnCallBool('rxn-specific-form-of-rxn-p', may_be_frameid(specific_rxn), may_be_frameid(generic_rxn))
   
     def nonspecific_forms_of_rxn(self, rxn):
       """
@@ -1191,14 +1247,14 @@ class PGDB():
       Arguments
   
           rxn
-              An instance of the class Reactions, a frame id or PFrame. 
+              An instance of the class Reactions, that is, a frame id or PFrame. 
   
       Side-Effects
           None. 
       Return value
           A list of children of the class Reactions. 
       """
-      return self.sendPgdbFnCallList('nonspecific-forms-of-rxn', rxn)
+      return self.sendPgdbFnCallList('nonspecific-forms-of-rxn', may_be_frameid(rxn))
   
     def specific_forms_of_rxn(self, rxn):
       """
@@ -1208,14 +1264,14 @@ class PGDB():
       Arguments
   
           rxn
-              A child of the class Reactions, a frame id or PFrame. 
+              A child of the class Reactions, that is, a frame id or PFrame. 
   
       Side-Effects
           None. 
       Return value
           A list of instances of the class Reactions. 
       """
-      return self.sendPgdbFnCallList('specific-forms-of-rxn', rxn)
+      return self.sendPgdbFnCallList('specific-forms-of-rxn', may_be_frameid(rxn))
   
     def rxn_in_compartment_p(self, rxn, compartments, default_ok=None, pwy=None, loose=None):
       """
@@ -1249,8 +1305,8 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      kwargs = {'default-ok?': default_ok, 'pwy': pwy, 'loose': loose}
-      return self.sendPgdbFnCallBool('rxn-in-compartment-p', rxn, compartments, **kwargs)
+      kwargs = {'default-ok?': default_ok, 'pwy': may_be_frameid(pwy), 'loose': loose}
+      return self.sendPgdbFnCallBool('rxn-in-compartment-p', may_be_frameid(rxn), compartments, **kwargs)
   
     def compartment_of_rxn(self, rxn, default=None):
       """
@@ -1260,7 +1316,7 @@ class PGDB():
       Arguments
   
           rxn
-              An instance of the class Reactions, a frame id or PFrame.  
+              An instance of the class Reactions, that is, a frame id or PFrame.  
           default
               Keyword, The default compartment for reactions without any
               compartment annotations on their substrates. The default
@@ -1271,7 +1327,7 @@ class PGDB():
       Return value
           A child of the class CCO. 
       """
-      return self.sendPgdbFnCall('compartment-of-rxn', rxn, default)
+      return self.sendPgdbFnCall('compartment-of-rxn', may_be_frameid(rxn), default)
   
     def compartments_of_reaction(self, rxn, sides=None, default_compartment=None):
       """
@@ -1296,7 +1352,7 @@ class PGDB():
           A list of children of the class CCO. 
       """
       kwargs = {'sides': sides, 'default-compartment': default_compartment}
-      return self.sendPgdbFnCallList('compartments-of-reaction', rxm, **kwargs)
+      return self.sendPgdbFnCallList('compartments-of-reaction', may_be_frameid(rxn), **kwargs)
  
     def transported_chemicals(self, rxn, side=None, primary_only=None, 
                               from_compartment=None, to_compartment=None, show_compartment=None):
@@ -1340,7 +1396,7 @@ class PGDB():
                 'from-compartment': from_compartment,
                 'to-compartment':   to_compartment,
                 'show-compartment': show_compartment }
-      return self.sendPgdbFnCallList('transported-chemicals', rxn, **kwargs)
+      return self.sendPgdbFnCallList('transported-chemicals', may_be_frameid(rxn), **kwargs)
 
     def get_predecessors(self, rxn, pwy):
       """
@@ -1360,7 +1416,7 @@ class PGDB():
       Return value
           A list of instances of the class Reactions. 
       """
-      return self.sendPgdbFnCallList('get-predecessors', rxn, pwy)
+      return self.sendPgdbFnCallList('get-predecessors', may_be_frameid(rxn), may_be_frameid(pwy))
   
     def get_successors(self, rxn, pwy):
       """
@@ -1380,7 +1436,7 @@ class PGDB():
       Return value
           A list of instances of the class Reactions. 
       """
-      return self.sendPgdbFnCallList('get-successors', rxn, pwy)
+      return self.sendPgdbFnCallList('get-successors', may_be_frameid(rxn), may_be_frameid(pwy))
   
     def rxn_w_isozymes_p(self, rxn):
       """
@@ -1398,7 +1454,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('rxn-w-isozymes-p', rxn)
+      return self.sendPgdbFnCallBool('rxn-w-isozymes-p', may_be_frameid(rxn))
   
     #  Operations on Pathways 
   
@@ -1420,8 +1476,8 @@ class PGDB():
       Return value
           A list of instances of class Genes. 
       """
-      kwargs = {'pwy': pwy, 'sorted': sorted}
-      return self.sendPgdbFnCallList('genes-of-pathway', pwy, **kwargs)
+      kwargs = {'sorted': sorted}
+      return self.sendPgdbFnCallList('genes-of-pathway', may_be_frameid(pwy), **kwargs)
   
     def enzymes_of_pathway(self, pwy, species=None, experimental_only=None, sorted=None):
       """
@@ -1453,7 +1509,7 @@ class PGDB():
           Protein-RNA-Complexes. 
       """
       kwargs = {'species': species, 'experimental-only?': experimental_only, 'sorted': sorted}
-      return self.sendPgdbFnCallList('enzymes-of-pathway', pwy, **kwargs)
+      return self.sendPgdbFnCallList('enzymes-of-pathway', may_be_frameid(pwy), **kwargs)
   
     def compounds_of_pathway(self, pwy):
       """
@@ -1471,7 +1527,7 @@ class PGDB():
           A list of children of class Compounds, children of class
           Polymer-Segments, or strings. 
       """
-      return self.sendPgdbFnCallList('compounds-of-pathway', pwy)
+      return self.sendPgdbFnCallList('compounds-of-pathway', may_be_frameid(pwy))
   
     def substrates_of_pathway(self, pwy):
       """
@@ -1495,7 +1551,7 @@ class PGDB():
           may be a child of class Compounds, a child of class
           Polymer-Segments, or a string. 
       """
-      return self.sendPgdbFnCall('substrates-of-pathway', pwy)
+      return self.sendPgdbFnCall('substrates-of-pathway', may_be_frameid(pwy))
   
     def variants_of_pathway(self, pwy):
       """
@@ -1511,7 +1567,7 @@ class PGDB():
       Return value
           A list of instance of the class Pathways. 
       """
-      return self.sendPgdbFnCallList('variants-of-pathway', pwy)
+      return self.sendPgdbFnCallList('variants-of-pathway', may_be_frameid(pwy))
   
     def pathway_components(self, pwy, rxn_list=None, pred_list=None):
       """
@@ -1550,8 +1606,8 @@ class PGDB():
           number of connected components, and the length of the reaction
           list. 
       """
-      kwargs = {'rxn-list': rxn_list, 'pred-list': pred_list}
-      return self.sendPgdbFnCall('pathway-components', pwy, **kwargs)
+      kwargs = {'rxn-list': may_be_frameid(rxn_list), 'pred-list': may_be_frameid(pred_list)}
+      return self.sendPgdbFnCall('pathway-components', may_be_frameid(pwy), **kwargs)
   
     def noncontiguous_pathway_p(self, pwy):
       """
@@ -1569,7 +1625,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('noncontiguous-pathway-p', pwy)
+      return self.sendPgdbFnCallBool('noncontiguous-pathway-p', may_be_frameid(pwy))
   
     def rxns_adjacent_in_pwy_p(self, rxn1, rxn2, pwy):
       """
@@ -1590,7 +1646,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('rxns-adjacent-in-pwy-p', rxn1, rxn2, pwy)
+      return self.sendPgdbFnCallBool('rxns-adjacent-in-pwy-p', may_be_frameid(rxn1), may_be_frameid(rxn2), may_be_frameid(pwy))
   
     #  Operations on Enzymatic-Reactions
   
@@ -1610,7 +1666,7 @@ class PGDB():
           A list of children of class Chemicals or strings,
           representing cofactors and/or prosthetic groups. 
       """
-      return self.sendPgdbFnCallList('cofactors-and-pgroups-of-enzrxn', enzrxn)
+      return self.sendPgdbFnCallList('cofactors-and-pgroups-of-enzrxn', may_be_frameid(enzrxn))
   
     def enzrxn_activators(self, er, phys_relevant_only=None):
       """
@@ -1631,7 +1687,7 @@ class PGDB():
       Return value
           A list of children of the class Chemicals. 
       """
-      return self.sendPgdbFnCallList('enzrxn-activators', er, phys_relevant_only)
+      return self.sendPgdbFnCallList('enzrxn-activators', may_be_frameid(er), phys_relevant_only)
   
     def enzrxn_inhibitors(self, er, phys_relevant_only=None):
       """
@@ -1652,7 +1708,7 @@ class PGDB():
       Return value
           A list of children of the class Chemicals. 
       """
-      return self.sendPgdbFnCallList('enzrxn_inhibitors', er, phys_relevant_only)
+      return self.sendPgdbFnCallList('enzrxn_inhibitors', may_be_frameid(er), phys_relevant_only)
   
     def pathways_of_enzrxn(self, enzrxn, include_super_pwys=None):
       """
@@ -1677,7 +1733,7 @@ class PGDB():
           A list of instances of class Pathways. 
       """
       kwargs = {'include-super-pwys?': include_super_pwys}
-      return self.sendPgdbFnCallList('pathways_of_enzrxn', enzrxn, **kwargs)
+      return self.sendPgdbFnCallList('pathways_of_enzrxn', may_be_frameid(enzrxn), **kwargs)
   
     def pathway_allows_enzrxn(self, pwy, rxn, enzrxn, single_species=None):
       """
@@ -1706,7 +1762,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('pathway-allows-enzrxn', pwy, rxn, enzrxn, single_species)
+      return self.sendPgdbFnCallBool('pathway-allows-enzrxn', may_be_frameid(pwy), may_be_frameid(rxn), may_be_frameid(enzrxn), single_species)
   
     # Operations on Proteins
   
@@ -1735,7 +1791,7 @@ class PGDB():
           value. 
       """
       kwargs = {'coefficients?': coefficients, 'unmodify?': unmodify}
-      return self.sendPgdbFnCallList('monomers-of-protein', p, **kwargs)
+      return self.sendPgdbFnCallList('monomers-of-protein', may_be_frameid(p), **kwargs)
   
     def base_components_of_protein(self, p, exclude_small_molecules=None):
       """
@@ -1759,7 +1815,7 @@ class PGDB():
           RNA, and Compounds. The second value is a list of the
           corresponding coefficients of the components in the first value. 
       """
-      return self.sendPgdbFnCall('base-components-of-protein', p, exclude_small_molecules)
+      return self.sendPgdbFnCall('base-components-of-protein', may_be_frameid(p), exclude_small_molecules)
   
     def containers_of(self, protein, exclude_self=None):
       """
@@ -1779,7 +1835,7 @@ class PGDB():
       Return value
           A list of instances of the class Proteins. 
       """
-      return self.sendPgdbFnCallList('containers-of', protein, exclude_self)
+      return self.sendPgdbFnCallList('containers-of', may_be_frameid(protein), exclude_self)
   
     def protein_or_rna_containers_of(self, protein, exclude_self=None):
       """
@@ -1801,7 +1857,7 @@ class PGDB():
       Return value
           A list of instances of the class Proteins. 
       """
-      return self.sendPgdbFnCallList('protein-or-rna-containers-of', protein, exclude_self)
+      return self.sendPgdbFnCallList('protein-or-rna-containers-of', may_be_frameid(protein), exclude_self)
   
     def homomultimeric_containers_of(self, protein, exclude_self=None):
       """
@@ -1821,7 +1877,7 @@ class PGDB():
       Return value
           A list of instances of the class Proteins. 
       """
-      return self.sendPgdbFnCallList('homomultimeric-containers-of', protein, exclude_self)
+      return self.sendPgdbFnCallList('homomultimeric-containers-of', may_be_frameid(protein), exclude_self)
   
     def polypeptide_or_homomultimer_p(self, protein):
       """
@@ -1838,7 +1894,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('polypeptide-or-homomultimer-p', protein)
+      return self.sendPgdbFnCallBool('polypeptide-or-homomultimer-p', may_be_frameid(protein))
   
     def unmodified_form(self, protein):
       """
@@ -1855,7 +1911,7 @@ class PGDB():
       Return value
           An instance of the class Proteins. 
       """
-      return self.sendPgdbFnCall('unmodified-form', protein)
+      return self.sendPgdbFnCall('unmodified-form', may_be_frameid(protein))
   
     def unmodified_or_unbound_form(self, protein):
       """
@@ -1872,7 +1928,7 @@ class PGDB():
       Return value
           An instance of the class Proteins. 
       """
-      return self.sendPgdbFnCall('unmodified-or-unbound-form', protein)
+      return self.sendPgdbFnCall('unmodified-or-unbound-form', may_be_frameid(protein))
   
     def reduce_modified_proteins(self, prots, debind=None):
       """
@@ -1895,7 +1951,7 @@ class PGDB():
           A list of instances of the class Proteins. 
       """
       kwargs = {'debind?': debind}
-      return self.sendPgdbFnCallList('reduce-modified-proteins', prots, **kwargs)
+      return self.sendPgdbFnCallList('reduce-modified-proteins', may_be_frameid(prots), **kwargs)
   
     def all_direct_forms_of_protein(self, protein):
       """
@@ -1913,7 +1969,7 @@ class PGDB():
       Return Value
           A list of instances of the class Proteins. 
       """
-      return self.sendPgdbFnCallList('all-direct-forms-of-protein', protein)
+      return self.sendPgdbFnCallList('all-direct-forms-of-protein', may_be_frameid(protein))
   
     def all_forms_of_protein(self, protein):
       """
@@ -1933,7 +1989,7 @@ class PGDB():
       Return value
           A list of instances of the class Proteins. 
       """
-      return self.sendPgdbFnCallList('all-forms-of-protein', protein)
+      return self.sendPgdbFnCallList('all-forms-of-protein', may_be_frameid(protein))
   
     def modified_forms(self, protein, exclude_self=None, all_variants=None):
       """
@@ -1956,9 +2012,9 @@ class PGDB():
       Return value
           A list of instances of the class Proteins. 
       """
-      return self.sendPgdbFnCallList('modified-forms', protein, exclude_self, all_variants)
+      return self.sendPgdbFnCallList('modified-forms', may_be_frameid(protein), exclude_self, all_variants)
   
-    def modified_and_unmodified_forms(self):
+    def modified_and_unmodified_forms(self, protein):
       """
       Description
           Returns all of the modified and unmodified forms of the given
@@ -1973,7 +2029,7 @@ class PGDB():
       Return value
           A list of instances of the class Proteins. 
       """
-      return self.sendPgdbFnCallList('modified-and-unmodified-forms', protein)
+      return self.sendPgdbFnCallList('modified-and-unmodified-forms', may_be_frameid(protein))
   
     def modified_containers(self, protein):
       """
@@ -1990,7 +2046,7 @@ class PGDB():
       Return value
           A list of instances of the class Proteins. 
       """
-      return self.sendPgdbFnCallList('modified-containers', protein)
+      return self.sendPgdbFnCallList('modified-containers', may_be_frameid(protein))
   
     def top_containers(self, protein):
       """
@@ -2007,7 +2063,7 @@ class PGDB():
       Return value
           A list of instances of the class Proteins. 
       """
-      return self.sendPgdbFnCallList('top-containers', protein)
+      return self.sendPgdbFnCallList('top-containers', may_be_frameid(protein))
   
     def small_molecule_cplxes_of_prot(self, protein):
       """
@@ -2024,16 +2080,16 @@ class PGDB():
       Return value
           A list of instances of the class Proteins. 
       """
-      return self.sendPgdbFnCallList('small-molecule-cplxes-of-prot', protein)
+      return self.sendPgdbFnCallList('small-molecule-cplxes-of-prot', may_be_frameid(protein))
   
-    def genes_of_protein(self, p):
+    def genes_of_protein(self, protein):
       """
       Description
           Given a protein, return the set of genes which encode all of the
           monomers of the protein. 
       Arguments
   
-          p
+          protein
               An instance of the class Proteins, a frame id or PFrame.  
   
       Side-Effects
@@ -2041,16 +2097,16 @@ class PGDB():
       Return value
           A list of instances of the class Genes. 
       """
-      return self.sendPgdbFnCallList('genes-of-protein', p)
+      return self.sendPgdbFnCallList('genes-of-protein', may_be_frameid(protein))
   
-    def genes_of_proteins(self, p):
+    def genes_of_proteins(self, protein):
       """
       Description
           The same as genes_of_protein, except that it takes a list of
           proteins and returns a set of genes. 
       Arguments
   
-          p
+          protein
               A list of instances of the class Proteins, a frame id or PFrame.  
   
       Side-Effects
@@ -2058,16 +2114,16 @@ class PGDB():
       Return value
           A list of instances of the class Genes. 
       """
-      return self.sendPgdbFnCallList('genes-of-proteins', p)
+      return self.sendPgdbFnCallList('genes-of-proteins', may_be_frameid(protein))
   
-    def reactions_of_enzyme(self, e, kb=None, include_specific_forms=None):
+    def reactions_of_enzyme(self, protein, kb=None, include_specific_forms=None):
       """
       Description
           Return all of the reactions associated with a given protein via
           enzymatic reactions. 
       Arguments
   
-          e
+          protein
               An instance of the class Proteins, a frame id or PFrame.  
           kb
               Keyword, The KB object of the KB in which to find
@@ -2082,15 +2138,15 @@ class PGDB():
           A list of instances of the class Reactions. 
       """
       kwargs = {'kb': kb, 'include-specific-forms?': include_specific_forms}
-      return self.sendPgdbFnCallList('reactions_of_enzyme', e, **kwargs)
+      return self.sendPgdbFnCallList('reactions_of_enzyme', may_be_frameid(protein), **kwargs)
   
-    def species_of_protein(self, p):
+    def species_of_protein(self, protein):
       """
       Description
           Get the associated species for the given protein. 
       Arguments
   
-          p
+          protein
               A list of instances of the class Proteins, a frame id or PFrame.  
   
       Side-Effects
@@ -2098,7 +2154,7 @@ class PGDB():
       Return value
           An instance of the class Organisms, or a string. 
       """
-      return self.sendPgdbFnCall('species-of-protein', p)
+      return self.sendPgdbFnCall('species-of-protein', may_be_frameid(protein))
   
     def enzyme_p(self, protein, type=None):
       """
@@ -2134,7 +2190,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('enzyme-p', protein, mkey(type))
+      return self.sendPgdbFnCallBool('enzyme-p', may_be_frameid(protein), mkey(type))
   
     def leader_peptide_p(self, protein):
       """
@@ -2151,7 +2207,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('leader-peptide-p', protein)
+      return self.sendPgdbFnCallBool('leader-peptide-p', may_be_frameid(protein))
   
     def protein_p(self, frame):
       """
@@ -2160,33 +2216,33 @@ class PGDB():
       Arguments
   
           frame
-              An instance of the class Proteins, a frame id or PFrame.  
+              a frame id or PFrame.  
   
       Side-Effects
           None. 
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('protein-p', frame)
+      return self.sendPgdbFnCallBool('protein-p', may_be_frameid(frame))
   
     def complex_p(self, frame):
       """
       Description
-          A predicate that determines whether the given protein is a
+          A predicate that determines whether the given frame is a
           protein complex. 
       Arguments
   
           frame
-              An instance of the class Proteins, a frame id or PFrame.  
+              a frame id or PFrame.  
   
       Side-Effects
           None. 
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('complex-p', frame)
+      return self.sendPgdbFnCallBool('complex-p', may_be_frameid(frame))
   
-    def reactions_of_protein(self, p, check_protein_components=None, 
+    def reactions_of_protein(self, protein, check_protein_components=None, 
                              check_protein_containers=None):
       """
       Description
@@ -2194,7 +2250,7 @@ class PGDB():
           or its components, catalyzes. 
       Arguments
   
-          p
+          protein
               An instance of the class Proteins, a frame id or PFrame.  
           check_protein_components?
               Keyword, If True, check all components of this protein for
@@ -2208,7 +2264,7 @@ class PGDB():
       Return value
           A list of instances of class Reactions. 
       """
-      return self.sendPgdbFnCallList('reactions_of_protein', p, 
+      return self.sendPgdbFnCallList('reactions_of_protein', may_be_frameid(protein), 
                                  check_protein_components, check_protein_containers)
   
     def protein_in_compartment_p(self, rxn, compartments, default_ok=None, pwy=None, loose=None):
@@ -2242,8 +2298,8 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      kwargs = {'default-ok?': default_ok, 'pwy': pwy, 'loose?': loose}
-      return self.sendPgdbFnCallBool('protein-in-compartment-p', rxn, **kwargs)
+      kwargs = {'default-ok?': default_ok, 'pwy': may_be_frameid(pwy), 'loose?': loose}
+      return self.sendPgdbFnCallBool('protein-in-compartment-p', may_be_frameid(rxn), **kwargs)
   
     def all_transporters_across(self, membranes=None, method=None):
       """
@@ -2270,7 +2326,7 @@ class PGDB():
       kwargs = {'membranes': membranes, 'method': method}
       return self.sendPgdbFnCallList('all-transporters-across', **kwargs)
   
-    def autocatalytic_reactions_of_enzyme(self, prot):
+    def autocatalytic_reactions_of_enzyme(self, protein):
       """
       Description
           Returns a list of reaction frames, where the protein
@@ -2280,7 +2336,7 @@ class PGDB():
           reaction. 
       Arguments
   
-          prot
+          protein
               An instance frame of class Proteins, a frame id or PFrame.  
   
       Side-Effects
@@ -2288,9 +2344,11 @@ class PGDB():
       Return value
           A list of instances of class Reactions. 
       """
-      return self.sendPgdbFnCallList('autocatalytic-reactions-of-enzyme', prot)
+      return self.sendPgdbFnCallList('autocatalytic-reactions-of-enzyme', may_be_frameid(protein))
   
-    #  Operations on Genes
+    #
+    #  Methods on Genes
+    #
     def gene_p(self, item):
       """
       Description
@@ -2298,14 +2356,14 @@ class PGDB():
       Arguments
   
           item
-              A frame object or frameid, a frame id or PFrame.  
+              a frame id or PFrame.  
   
       Side-Effects
           None. 
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('gene-p', item)
+      return self.sendPgdbFnCallBool('gene-p', may_be_frameid(item))
   
     def enzymes_of_gene(self, gene):
       """
@@ -2322,7 +2380,7 @@ class PGDB():
       Return value
           A list of instances of class Proteins. 
       """
-      return self.sendPgdbFnCallList('enzymes-of-gene', gene)
+      return self.sendPgdbFnCallList('enzymes-of-gene', may_be_frameid(gene))
   
     def all_products_of_gene(self, gene):
       """
@@ -2339,7 +2397,7 @@ class PGDB():
       Return value
           A list of instances of class Proteins. 
       """
-      return self.sendPgdbFnCallList('all-products-of-gene', gene)
+      return self.sendPgdbFnCallList('all-products-of-gene', may_be_frameid(gene))
   
     def reactions_of_gene(self, gene):
       """
@@ -2356,7 +2414,7 @@ class PGDB():
       Return value
           A list of instances of class Reactions. 
       """
-      return self.sendPgdbFnCallList('reactions-of-gene', gene)
+      return self.sendPgdbFnCallList('reactions-of-gene', may_be_frameid(gene))
   
     def pathways_of_gene(self, gene, include_super_pwys=None):
       """
@@ -2380,7 +2438,7 @@ class PGDB():
           A list of instances of class Pathways. 
       """
       kwargs = {'include-super-pwys': include_super_pwys}
-      return self.sendPgdbFnCallList('pathways-of-gene', gene, **kwargs)
+      return self.sendPgdbFnCallList('pathways-of-gene', may_be_frameid(gene), **kwargs)
   
     def chromosome_of_gene(self, gene):
       """
@@ -2398,7 +2456,7 @@ class PGDB():
       Return value
           An instance of class Genetic-Elements. 
       """
-      return self.sendPgdbFnCall('chromosome-of-gene', gene)
+      return self.sendPgdbFnCall('chromosome-of-gene', may_be_frameid(gene))
   
     def unmodified_gene_product(self, gene):
       """
@@ -2416,7 +2474,7 @@ class PGDB():
       Return value
           An instance of either class Polypeptides or 'RNA. 
       """
-      return self.sendPgdbFnCall('unmodified-gene-product', gene)
+      return self.sendPgdbFnCall('unmodified-gene-product', may_be_frameid(gene))
   
     def unmodified_gene_products(self, gene):
       """
@@ -2433,7 +2491,7 @@ class PGDB():
       Return value
           A list of instances of either class Polypeptides or 'RNA. 
       """
-      return self.sendPgdbFnCallList('unmodified-gene-products', gene)
+      return self.sendPgdbFnCallList('unmodified-gene-products', may_be_frameid(gene))
   
     def next_gene_on_replicon(self, gene):
       """
@@ -2452,7 +2510,7 @@ class PGDB():
           linear replicon). The second value is 'last' if the gene is the
           last gene on a linear replicon. 
       """
-      return self.sendPgdbFnCall('next-gene-on-replicon', gene)
+      return self.sendPgdbFnCall('next-gene-on-replicon', may_be_frameid(gene))
   
     def previous_gene_on_replicon(self, gene):
       """
@@ -2471,7 +2529,7 @@ class PGDB():
           beginning of a linear replicon). The second value is 'first' if
           the gene is the first gene on a linear replicon. 
       """
-      return self.sendPgdbFnCall('previous-gene-on-replicon', gene)
+      return self.sendPgdbFnCall('previous-gene-on-replicon', may_be_frameid(gene))
   
     def adjacent_genes_p(self, g1, g2):
       """
@@ -2490,7 +2548,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('adjacent-genes?', g1, g2)
+      return self.sendPgdbFnCallBool('adjacent-genes?', may_be_frameid(g1), may_be_frameid(g2))
   
     def neighboring_genes_p(self, g1, g2, n=None):
       """
@@ -2513,7 +2571,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('neighboring-genes-p', g1, g2, n)
+      return self.sendPgdbFnCallBool('neighboring-genes-p', may_be_frameid(g1), may_be_frameid(g2), n)
   
     def gene_clusters(self, genes, max_gap=None):
       """
@@ -2535,7 +2593,7 @@ class PGDB():
           gene from genes, and the rest of the list are all of the gene
           neighbors of the first gene. 
       """
-      return self.sendPgdbFnCallList('gene-clusters', genes, max_gap)
+      return self.sendPgdbFnCallList('gene-clusters', may_be_frameid(genes), max_gap)
   
     def rna_coding_gene(self, gene):
       """
@@ -2551,7 +2609,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('rna-coding-gene', gene)
+      return self.sendPgdbFnCallBool('rna-coding-gene', may_be_frameid(gene))
   
     def protein_coding_gene(self, gene):
       """
@@ -2568,7 +2626,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('protein-coding-gene', gene)
+      return self.sendPgdbFnCallBool('protein-coding-gene', may_be_frameid(gene))
   
     def pseudo_gene_p(self, gene):
       """
@@ -2584,7 +2642,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('pseudo-gene-p', gene)
+      return self.sendPgdbFnCallBool('pseudo-gene-p', may_be_frameid(gene))
   
     def phantom_gene_p(self, gene):
       """
@@ -2600,7 +2658,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('phantom-gene-p', gene)
+      return self.sendPgdbFnCallBool('phantom-gene-p', may_be_frameid(gene))
   
     def dna_binding_site_p(self, gene):
       """
@@ -2617,7 +2675,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('dna-binding-site-p', gene)
+      return self.sendPgdbFnCallBool('dna-binding-site-p', may_be_frameid(gene))
   
     def terminator_p(self, gene):
       """
@@ -2634,7 +2692,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('terminatorp', gene)
+      return self.sendPgdbFnCallBool('terminatorp', may_be_frameid(gene))
   
     def operon_of_gene(self, gene):
       """
@@ -2652,7 +2710,7 @@ class PGDB():
       Return value
           A list of instances of class Transcription-Units. 
       """
-      return self.sendPgdbFnCallList('operon-of-gene', gene)
+      return self.sendPgdbFnCallList('operon-of-gene', may_be_frameid(gene))
   
     def genes_in_same_operon(self, gene):
       """
@@ -2668,7 +2726,7 @@ class PGDB():
       Return value
           A list of instances of class Genes. 
       """
-      return self.sendPgdbFnCallList('genes-in-same-operon', gene)
+      return self.sendPgdbFnCallList('genes-in-same-operon', may_be_frameid(gene))
   
     def gene_transcription_units(self, gene):
       """
@@ -2685,7 +2743,7 @@ class PGDB():
       Return value
           A list of instances of class Transcription-Units. 
       """
-      return self.sendPgdbFnCallList('gene-transcription-units', gene)
+      return self.sendPgdbFnCallList('gene-transcription-units', may_be_frameid(gene))
   
     def cotranscribed_genes(self, gene):
       """
@@ -2702,7 +2760,7 @@ class PGDB():
       Return value
           A list of instances of class Genes. 
       """
-      return self.sendPgdbFnCallList('cotranscribed-genes', gene)
+      return self.sendPgdbFnCallList('cotranscribed-genes', may_be_frameid(gene))
   
     def terminators_affecting_gene(self, gene):
       """
@@ -2719,7 +2777,7 @@ class PGDB():
       Return value
           A list of instances of class Terminators. 
       """
-      return self.sendPgdbFnCallList('terminators-affecting-gene', gene)
+      return self.sendPgdbFnCallList('terminators-affecting-gene', may_be_frameid(gene))
   
     def chromosome_of_object(self, item):
       """
@@ -2740,11 +2798,12 @@ class PGDB():
       Return value
           An instance of class Genetic-Elements. 
       """
-      return self.sendPgdbFnCall('chromosome-of-object', item)
+      return self.sendPgdbFnCall('chromosome-of-object', may_be_frameid(item))
   
-  
-     #  Operations on Regulation Frames 
-  
+    #
+    #  Methods on Regulation Frames 
+    #
+
     def activation_p(self, reg_frame):
       """
       Description
@@ -2759,7 +2818,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('activation-p', reg_frame)
+      return self.sendPgdbFnCallBool('activation-p', may_be_frameid(reg_frame))
   
     def inhibition_p(self, reg_frame):
       """
@@ -2776,7 +2835,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('inhibition-p', reg_frame)
+      return self.sendPgdbFnCallBool('inhibition-p', may_be_frameid(reg_frame))
   
     def direct_regulators(self, item, filter=None):
       """
@@ -2794,9 +2853,9 @@ class PGDB():
       Side-Effects
           None. 
       Return value
-          A list of frames that regulate x. 
+          A list of frames that regulate item. 
       """
-      return self.sendPgdbFnCallList('direct-regulators', item, filter)
+      return self.sendPgdbFnCallList('direct-regulators', may_be_frameid(item), filter)
   
     def direct_activators(self, item):
       """
@@ -2811,9 +2870,9 @@ class PGDB():
       Side-Effects
           None. 
       Return value
-          A list of frames that activate x. 
+          A list of frames that activate item. 
       """
-      return self.sendPgdbFnCallList('direct-activators', item)
+      return self.sendPgdbFnCallList('direct-activators', may_be_frameid(item))
   
     def direct_inhibitors(self, item):
       """
@@ -2830,7 +2889,7 @@ class PGDB():
       Return value
           A list of frames that inhibit item. 
       """
-      return self.sendPgdbFnCallList('direct-inhibitors', item)
+      return self.sendPgdbFnCallList('direct-inhibitors', may_be_frameid(item))
   
     def transcription_factor_p(self, protein, include_inactive=None):
       """
@@ -2852,7 +2911,7 @@ class PGDB():
           A boolean value. 
       """
       kwargs = {'include-inactive?': include_inactive}
-      return self.sendPgdbFnCallBool('transcription-factor-p', protein, **kwargs)
+      return self.sendPgdbFnCallBool('transcription-factor-p', may_be_frameid(protein), **kwargs)
   
     def regulator_of_type(self, protein, class_name):
       """
@@ -2871,7 +2930,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('regulator-of-type', protein, class_name)
+      return self.sendPgdbFnCallBool('regulator-of-type', may_be_frameid(protein), class_name)
   
     def regulon_of_protein(self, protein):
       """
@@ -2888,7 +2947,7 @@ class PGDB():
       Return value
           A list of instances of the class Transcription-Units. 
       """
-      return self.sendPgdbFnCallList('regulon-of-protein', protein)
+      return self.sendPgdbFnCallList('regulon-of-protein', may_be_frameid(protein))
   
     def regulation_frame_transcription_units(self, reg_frame):
       """
@@ -2906,7 +2965,7 @@ class PGDB():
       Return value
           A list of instances of the class Transcription-Units. 
       """
-      return self.sendPgdbFnCallList('regulation-frame-transcription-units', reg_frame)
+      return self.sendPgdbFnCallList('regulation-frame-transcription-units', may_be_frameid(reg_frame))
   
     def transcription_unit_regulation_frames(self, tu):
       """
@@ -2923,7 +2982,7 @@ class PGDB():
       Return value
           A list of instances of the class Regulation. 
       """
-      return self.sendPgdbFnCallList('transcription-unit-regulation-frames', tu)
+      return self.sendPgdbFnCallList('transcription-unit-regulation-frames', may_be_frameid(tu))
   
     def transcription_unit_activation_frames(self, tu):
       """
@@ -2940,7 +2999,7 @@ class PGDB():
       Return value
           A list of instances of the class Regulation. 
       """
-      return self.sendPgdbFnCallList('transcription-unit-activation-frames', tu)
+      return self.sendPgdbFnCallList('transcription-unit-activation-frames', may_be_frameid(tu))
   
     def transcription_unit_inhibition_frames(self, tu):
       """
@@ -2957,7 +3016,7 @@ class PGDB():
       Return value
           A list of instances of the class Regulation. 
       """
-      return self.sendPgdbFnCallList('transcription-unit-inhibition-frames', tu)
+      return self.sendPgdbFnCallList('transcription-unit-inhibition-frames', may_be_frameid(tu))
   
     def transcription_units_of_protein(self, protein):
       """
@@ -2974,7 +3033,7 @@ class PGDB():
       Return value
           A list of instances of the class Transcription-Units. 
       """
-      return self.sendPgdbFnCallList('transcription-units-of-protein', protein)
+      return self.sendPgdbFnCallList('transcription-units-of-protein', may_be_frameid(protein))
   
     def genes_regulated_by_protein(self, protein):
       """
@@ -2991,7 +3050,7 @@ class PGDB():
       Return value
           A list of instances of the class Genes. 
       """
-      return self.sendPgdbFnCallList('genes-regulated-by-protein', protein)
+      return self.sendPgdbFnCallList('genes-regulated-by-protein', may_be_frameid(protein))
   
     def DNA_binding_sites_of_protein(self, tf, all_forms=None):
       """
@@ -3011,7 +3070,7 @@ class PGDB():
           A list of instances of the class DNA-Binding-Sites. 
       """
       kwargs = {'all-forms?': all_forms}
-      return self.sendPgdbFnCallList('DNA-binding-sites-of-protein', tf, **kwargs)
+      return self.sendPgdbFnCallList('DNA-binding-sites-of-protein', may_be_frameid(tf), **kwargs)
   
     def regulator_proteins_of_transcription_unit(self, tu):
       """
@@ -3028,7 +3087,7 @@ class PGDB():
       Return value
           A list of instances of the class Proteins. 
       """
-      return self.sendPgdbFnCallList('regulator-proteins-of-transcription-unit', tu)
+      return self.sendPgdbFnCallList('regulator-proteins-of-transcription-unit', may_be_frameid(tu))
   
     def transcription_factor_ligands(self, tfs, mode):
       """
@@ -3050,7 +3109,7 @@ class PGDB():
       Return value
           A list of instances of the class Chemicals or strings. 
       """
-      return self.sendPgdbFnCallList('transcription-factor-ligands', tfs, mkey(mode))
+      return self.sendPgdbFnCallList('transcription-factor-ligands', may_be_frameid(tfs), mkey(mode))
   
     def transcription_factor_active_forms(self, tfs):
       """
@@ -3067,7 +3126,7 @@ class PGDB():
       Return value
           A list of instances of the class Proteins. 
       """
-      return self.sendPgdbFnCallList('transcription-factor-active-forms', tfs)
+      return self.sendPgdbFnCallList('transcription-factor-active-forms', may_be_frameid(tfs))
   
     def genes_regulating_gene(self, gene):
       """
@@ -3084,7 +3143,7 @@ class PGDB():
       Return value
           A list of instances of class Genes. 
       """
-      return self.sendPgdbFnCallList('genes-regulating-gene', gene)
+      return self.sendPgdbFnCallList('genes-regulating-gene', may_be_frameid(gene))
   
     def genes_regulated_by_gene(self, gene):
       """
@@ -3101,7 +3160,7 @@ class PGDB():
       Return value
           A list of instances of class Genes. 
       """
-      return self.sendPgdbFnCallList('genes-regulated-by-gene', gene)
+      return self.sendPgdbFnCallList('genes-regulated-by-gene', may_be_frameid(gene))
   
     def regulators_of_gene_transcription(self, gene, by_function=None):
       """
@@ -3123,7 +3182,7 @@ class PGDB():
           of activator proteins, and the second value is a list of
           inhibitor proteins. 
       """
-      return self.sendPgdbFnCall('regulators-of-gene-transcription', gene, by_function)
+      return self.sendPgdbFnCall('regulators-of-gene-transcription', may_be_frameid(gene), by_function)
   
     def transcription_unit_activators(self, tu):
       """
@@ -3139,7 +3198,7 @@ class PGDB():
       Return value
           A list of instances of class Proteins. 
       """
-      return self.sendPgdbFnCallList('transcription-unit-activators', tu)
+      return self.sendPgdbFnCallList('transcription-unit-activators', may_be_frameid(tu))
   
     def transcription_unit_inhibitors(self, tu):
       """
@@ -3155,7 +3214,7 @@ class PGDB():
       Return value
           A list of instances of class Proteins. 
       """
-      return self.sendPgdbFnCallList('transcription-unit-inhibitors', tu)
+      return self.sendPgdbFnCallList('transcription-unit-inhibitors', may_be_frameid(tu))
   
     def regulators_of_operon_transcription(self, operon_list, by_function=None):
       """
@@ -3176,7 +3235,7 @@ class PGDB():
           of the protein is the transcription factor, then that is the
           protein returned. 
       """
-      return self.sendPgdbFnCallList('regulators-of-operon-transcription', operon_list, by_function)
+      return self.sendPgdbFnCallList('regulators-of-operon-transcription', may_be_frameid(operon_list), by_function)
   
     def transcription_unit_promoter(self, tu):
       """
@@ -3192,7 +3251,7 @@ class PGDB():
       Return value
           An instance of class Promoters. 
       """
-      return self.sendPgdbFnCall('transcription-unit-promoter', tu)
+      return self.sendPgdbFnCall('transcription-unit-promoter', may_be_frameid(tu))
   
     def transcription_unit_genes(self, tu):
       """
@@ -3208,7 +3267,7 @@ class PGDB():
       Return value
           A list of instances of class Genes. 
       """
-      return self.sendPgdbFnCallList('transcription-unit-genes', tu)
+      return self.sendPgdbFnCallList('transcription-unit-genes', may_be_frameid(tu))
   
     def transcription_unit_first_gene(self, tu):
       """
@@ -3224,7 +3283,7 @@ class PGDB():
       Return value
           An instance of class Genes. 
       """
-      return self.sendPgdbFnCall('transcription-unit-first-gene', tu)
+      return self.sendPgdbFnCall('transcription-unit-first-gene', may_be_frameid(tu))
   
     def transcription_unit_binding_sites(self, tu):
       """
@@ -3240,7 +3299,7 @@ class PGDB():
       Return value
           A list of instances of class DNA-Binding-Sites. 
       """
-      return self.sendPgdbFnCallList('transcription-unit-binding-sites', tu)
+      return self.sendPgdbFnCallList('transcription-unit-binding-sites', may_be_frameid(tu))
   
     def transcription_unit_transcription_factors(self, tu):
       """
@@ -3256,7 +3315,7 @@ class PGDB():
       Return value
           A list of instances of class DNA-Binding-Sites. 
       """
-      return self.sendPgdbFnCallList('transcription-unit-transcription-factors', tu)
+      return self.sendPgdbFnCallList('transcription-unit-transcription-factors', may_be_frameid(tu))
   
     def transcription_unit_mrna_binding_sites(self, tu):
       """
@@ -3272,7 +3331,7 @@ class PGDB():
       Return value
           A list of instances of class mRNA-Binding-Sites. 
       """
-      return self.sendPgdbFnCallList('transcription-unit-mrna-binding-sites', tu)
+      return self.sendPgdbFnCallList('transcription-unit-mrna-binding-sites', may_be_frameid(tu))
   
     def chromosome_of_operon(self, tu):
       """
@@ -3288,9 +3347,9 @@ class PGDB():
       Return value
           An instance of class Genetic-Elements. 
       """
-      return self.sendPgdbFnCall('chromosome-of-operon', tu)
+      return self.sendPgdbFnCall('chromosome-of-operon', may_be_frameid(tu))
   
-    def binding_sites_affecting_gene(self):
+    def binding_sites_affecting_gene(self, gene):
       """
       Description
           Returns all binding sites which are present in the same
@@ -3305,7 +3364,7 @@ class PGDB():
       Return value
           A list of instances of class DNA-Binding-Sites. 
       """
-      return self.sendPgdbFnCallList('binding-sites-affecting-gene', gene)
+      return self.sendPgdbFnCallList('binding-sites-affecting-gene', may_be_frameid(gene))
   
     def binding_site_to_regulators(self, bsite):
       """
@@ -3321,7 +3380,7 @@ class PGDB():
       Return value
           A list of instances of class Proteins. 
       """
-      return self.sendPgdbFnCallList('binding-site->regulators', bsite)
+      return self.sendPgdbFnCallList('binding-site->regulators', may_be_frameid(bsite))
   
     def transcription_units_of_promoter(self, promoter):
       """
@@ -3337,9 +3396,9 @@ class PGDB():
       Return value
           A list of instances of class Transcription-Units. 
       """
-      return self.sendPgdbFnCallList('transcription-units-of-promoter', promoter)
+      return self.sendPgdbFnCallList('transcription-units-of-promoter', may_be_frameid(promoter))
   
-    def promoter_binding_sites(self):
+    def promoter_binding_sites(self, promoter):
       """
       Description
           Returns all of the binding sites associated with the given
@@ -3354,7 +3413,7 @@ class PGDB():
       Return value
           A list of instances of class DNA-Binding-Sites. 
       """
-      return self.sendPgdbFnCallList('promoter-binding-sites', promoter)
+      return self.sendPgdbFnCallList('promoter-binding-sites', may_be_frameid(promoter))
   
     def transcription_unit_terminators(self, operon):
       """
@@ -3370,9 +3429,9 @@ class PGDB():
       Return value
           A list of instances of class Terminators. 
       """
-      return self.sendPgdbFnCallList('transcription-unit-terminators', operon)
+      return self.sendPgdbFnCallList('transcription-unit-terminators', may_be_frameid(operon))
   
-    def containing_tus(self):
+    def containing_tus(self, site):
       """
       Description
           Given a site (whether a DNA binding site, a promoter, a gene, or
@@ -3390,7 +3449,7 @@ class PGDB():
       Return value
           A list of instances of class Transcription-Units. 
       """
-      return self.sendPgdbFnCallList('containing-tus', site)
+      return self.sendPgdbFnCallList('containing-tus', may_be_frameid(site))
   
     def containing_chromosome(self, site):
       """
@@ -3410,7 +3469,7 @@ class PGDB():
       Return value
           An instance of class Genetic-Elements. 
       """
-      return self.sendPgdbFnCall('containing-chromosome', tu)
+      return self.sendPgdbFnCall('containing-chromosome', may_be_frameid(site))
   
     def binding_site_promoters(self, tu):
       """
@@ -3426,7 +3485,7 @@ class PGDB():
       Return value
           A list of instances of class Promoters. 
       """
-      return self.sendPgdbFnCallList('binding-site-promoters', tu)
+      return self.sendPgdbFnCallList('binding-site-promoters', may_be_frameid(tu))
   
     def transcription_unit_all_components(self, tu):
       """
@@ -3445,7 +3504,7 @@ class PGDB():
           mRNA-Binding-Sites, DNA-Binding-Sites, Promoters,
           Genes, or Terminators. 
       """
-      return self.sendPgdbFnCallList('transcription-unit-all-components', tu)
+      return self.sendPgdbFnCallList('transcription-unit-all-components', may_be_frameid(tu))
   
     def binding_site_transcription_units(self, promoter):
       """
@@ -3462,11 +3521,11 @@ class PGDB():
       Return value
           A list of instances of class Transcription-Units. 
       """
-      return self.sendPgdbFnCallList('binding-site-transcription-units', promoter)
+      return self.sendPgdbFnCallList('binding-site-transcription-units', may_be_frameid(promoter))
   
-    #  Operations on Compounds
-  
-  
+    #
+    #  Methods on Compounds
+    #
     def reactions_of_compound(self, cpd, non_specific_too=None,transport_only=None,compartment=None,enzymatic=None):
       """
       Description
@@ -3499,7 +3558,7 @@ class PGDB():
                 'transport-only?':   transport_only,  
                 'compartment':       compartment,      
                 'enzymatic?':        enzymatic        }
-      return self.sendPgdbFnCallList('reactions-of-compound', cpd, **kwargs)
+      return self.sendPgdbFnCallList('reactions-of-compound', may_be_frameid(cpd), **kwargs)
   
     def substrate_of_generic_rxn(self, cpd, rxn):
       """
@@ -3518,7 +3577,7 @@ class PGDB():
       Return value
           A boolean value. 
       """
-      return self.sendPgdbFnCallBool('substrate-of-generic-rxn', cpd, rxn)
+      return self.sendPgdbFnCallBool('substrate-of-generic-rxn', may_be_frameid(cpd), may_be_frameid(rxn))
   
     def pathways_of_compound(self, cpd, non_specific_too=None, modulators=None, phys_relevant=None, include_rxns=None):
       """
@@ -3556,7 +3615,7 @@ class PGDB():
                 'modulators?':       modulators,       
                 'phys-relevant?':    phys_relevant,    
                 'include-rxns?':     include_rxns     }     
-      return self.sendPgdbFnCallList('pathways-of-compound', cpd, **kwargs)
+      return self.sendPgdbFnCallList('pathways-of-compound', may_be_frameid(cpd), **kwargs)
   
     def deactivated_or_inhibited_by_compound(self, cpds, mode=None, mechanisms=None, phys_relevant=None, slots=None):
       """
@@ -3591,7 +3650,7 @@ class PGDB():
                  'mechanisms':     mechanisms,   
                  'phys-relevant?': phys_relevant, 
                  'slots':          slots                 }
-      return self.sendPgdbFnCallList('deactivated-or-inhibited-by-compound', cpds, **kwargs)
+      return self.sendPgdbFnCallList('deactivated-or-inhibited-by-compound', may_be_frameid(cpds), **kwargs)
   
     def tfs_bound_to_compound(self, cpd, include_inactive=None):
       """
@@ -3613,7 +3672,7 @@ class PGDB():
           A list of instances of class Proteins. 
       """
       kwargs = {'include-inactive?': include_inactive}
-      return self.sendPgdbFnCallList('tfs-bound-to-compound', cpd, **kwargs)
+      return self.sendPgdbFnCallList('tfs-bound-to-compound', may_be_frameid(cpd), **kwargs)
   
      # Object Name Manipulation Operations
   
@@ -3630,7 +3689,7 @@ class PGDB():
       Arguments
   
           item
-              A frame object or a frameid, a frame id or PFrame.   
+              A frame id or PFrame.   
           rxn_eqn_as_name
               Keyword, If True, then we use the reaction
               equation in string form as the name of the reaction.
@@ -3682,7 +3741,7 @@ class PGDB():
                 'short-name?':                   short_name,  
                 'species-initials':              species_initials,
                 'primary-class':                 primary_class}
-      return self.sendPgdbFnCall('get-name-string', item, **kwargs)
+      return self.sendPgdbFnCall('get-name-string', may_be_frameid(item), **kwargs)
   
     def full_enzyme_name(self, enzyme, use_frame_name=None, name=None, activity_names=None):
       """
@@ -3695,7 +3754,7 @@ class PGDB():
       Arguments
   
           enzyme
-              A instance of the class Proteins, a frame id or PFrame.   
+              An instance of the class Proteins, that is, a frame id or a PFrame.   
           use_frame_name
               Keyword, If True, then the frameid of the enzyme
               instance is used in computing the enzyme name. Defaults to
@@ -3712,7 +3771,7 @@ class PGDB():
       Return value
           A string. 
       """
-      return self.sendPgdbFnCall('full-enzyme-name', enzyme, use_frame_name, 
+      return self.sendPgdbFnCall('full-enzyme-name', may_be_frameid(enzyme), use_frame_name, 
                                  name, activity_names)
   
     def enzyme_activity_name(self, enzyme, reaction=None):
@@ -3724,7 +3783,7 @@ class PGDB():
       Arguments
   
           enzyme
-              An instance of the class Proteins, a frame id or PFrame.   
+              An instance of the class Proteins, that is, a frame id or a PFrame.   
           reaction
               Keyword, An instance of the class Reactions. 
   
@@ -3733,6 +3792,6 @@ class PGDB():
       Return value
           A string. 
       """
-      return self.sendPgdbFnCall('enzyme-activity-name', enzyme, reaction)
+      return self.sendPgdbFnCall('enzyme-activity-name', may_be_frameid(enzyme), may_be_frameid(reaction))
  
  

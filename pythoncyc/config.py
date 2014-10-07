@@ -53,12 +53,12 @@ def set_debug_off():
     _debug = False
     print 'Debug off.'
 
-def set_hostname(hostname):
+def set_host_name(hostname):
     global _hostname
     _hostname = hostname
-    print 'Running Pathway Tools hostname set to',_hostname
+    print 'PythonCyc will communicate with Pathway Tools running on host name ',_hostname
 
-def set_hostport(hostport):
+def set_host_port(hostport):
     global _hostport
     _hostport = hostport
-    print 'Running Pathway Tools port set to',_hostport
+    print 'PythonCyc will communicate with Pathway Tools running on host port ',_hostport

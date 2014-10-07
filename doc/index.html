@@ -160,7 +160,7 @@ Then enter the command:
 specified using the 'meta' organism identifier (i.e., orgid). That PGDB
 object is assigned to the variable <tt>meta</tt>. If you want to
 have a list of all PGDBs, in their orgids, accessible from your
-running Pathway Tools, use the method <tt>pythoncyc.all_orgids()</tt>.
+running Pathway Tools, evaluate <tt>pythoncyc.all_orgids()</tt>.
 </p>
 
 <p>
@@ -168,7 +168,7 @@ If this command executes without any error, Pathway Tools and
 PythonCyc can communicate with each other.
 </p>
 
-Printing out the Python <tt>meta</tt> variable
+Printing out the Python <tt>meta</tt> variable you should get:
 
 <pre>
 >>> print meta
@@ -179,7 +179,7 @@ Printing out the Python <tt>meta</tt> variable
 This means that <tt>meta</tt> is bound to a PGDB object, its orgid is meta and
 it has currently no PFrames attached to it. Indeed, currently we only created
 a PGDB object that has no <i>data frames</i> in it. The following sections will show
-how to transfer data frames from Pathway Tools to PythonCyc.
+how to retrieve data frames from Pathway Tools to PythonCyc.
 </p>
 
 <p>Other useful methods are available from the pythoncyc module.
@@ -195,7 +195,7 @@ PGDB object, prints all the methods available, and their documentation,
 for a PGDB object.
 </p>
 
-<h2>Transfer of Frames From Pathway Tools using Frame Ids</h2>
+<h2>Retrieving Frames From Pathway Tools using Frame Ids</h2>
 
 <p> Using that variable <tt>meta</tt>, it is now possible to request data from the
 MetaCyc database.  For example, the following statement retrieves compound
@@ -208,10 +208,10 @@ can also specify in lower case letters:
 </pre>
 
 <p>Evaluating <tt>meta.trp</tt>, if done for the first time, triggers
-a call to Pathway Tools to transfer the <i>frame data</i> (or simply
+a call to Pathway Tools to retrieve the <i>frame data</i> (or simply
 frame) of compound TRP: the slots (also called attributes) and their
 data of the Pathway Tools frame representing compound TRP are
-transferred to PythonCyc to create a <b>PFrame</b> object to represent
+sent to PythonCyc to create a <b>PFrame</b> object to represent
 the compound TRP. PythonCyc also prints that frame content which is
 represented as a Python dictionary: the slots of the frame are
 the keys of the dictionary and the value of the slots are the
@@ -285,11 +285,10 @@ it has the character '+' which cannot be used in a Python identifier.
 </p>
 
 <p>In PythonCyc, frame ids are stored as strings prefixed and suffixed
-by '|'. These vertical bars more precisely identify frame ids in
-PythonCyc. Almost in all cases, you do not need to explicitly specify
-the vertical bars although PythonCyc does print them to remind you
-that a string represents a frame id. For example, we can see the frame
-id of meta.trp by printing it: </p>
+by '|'. In general, these vertical bars identify symbols in
+PythonCyc which exists as Lisp symbols in Pathway Tools. When
+symbols are return from Pathway Tools, the vertical bars are inserted.
+For example, we can see the frame id of meta.trp by printing it: </p>
 
 <pre>
 >>> print meta.trp.frameid
@@ -297,14 +296,14 @@ id of meta.trp by printing it: </p>
 </pre>
 
 <p>
-The syntax '|...|' is used to indicate that this string represents a frame id and can be
+The syntax '|...|' is used to indicate that this string represents a symbol and can be
 interpreted by Pathway Tools as a frame id. In Lisp, the programming language used
 to implement Pathway Tools, the double vertical bars signifies that this is a symbol that
 must be read exactly as given without any transformation (e.g., no case
 conversion on letters).
 </p>
 
-<p>Technical note: all PFrames created using a PGDB object are
+<p>Advanced technical note: all PFrames created using a PGDB object are
 included in a Python dictionary bound to an attribute, of that PGDB
 object, called "frames". The keys of that dictionary are the frame ids
 of the PFrames converted to valid Python identifiers. The __getattr__
@@ -333,14 +332,13 @@ representing the reactions. Each PFrame becomes also attributes to
 
 <p>The basic mechanism of attribute access and indexing on a PGDB
 object just shown is enough to retrieve all frames from a PGDB
-assuming that frame ids are known. Moreover, PFrames are implicitly
-(i.e., automatically) created when doing so to store locally in Python
-the data coming from Pathway Tools. The next section shows
+assuming that frame ids are known and PFrames are implicitly
+(i.e., automatically) created. The next section shows
 how to retrieve large number of frames based on classes of objects,
 which indirectly provides the frame ids of large number of frames.
 </p>
 
-<h2>Transfer of Classes of Frames from Pathway Tools</h2>
+<h2>Retrieving Classes of Frames from Pathway Tools</h2>
 
 <p>Another implicit operations done by PythonCyc is the retrieval of
 classes of objects from Pathway Tools. There are many classes of
@@ -366,7 +364,7 @@ has the name |Reactions| in Pathway Tools and it has 13,081 instances,
 that is, 13,081 reactions, all from the PGDB meta (i.e., MetaCyc).
 The number of instances may differ for you because MetaCyc is
 periodically modified. Remember that the vertical bars in a name means
-that it is a frame id
+that it is a symbol, and here it is more specifically a frame id.
 </p>
 
 <p>This PFrame <tt>reactions</tt> has an attribute <tt>instances</tt>
@@ -386,98 +384,51 @@ but we can also use indexing directly on the class reactions such as
 
 <pre>
 >>> reactions[0]
-</pre>
-
-You should get an output similar to:
-
-<pre>
 {'_gotframe': False, '_isclass': False, 'pgdb': meta, 'frameid': u'|3.1.22.4-RXN|'}
 </pre>
 
-but the frameid is likely different (MetaCyc is periodically
+but the frameid value is likely different (MetaCyc is periodically
 modified). As mentioned, each object in a PGDB has a unique identifier
 called the frame id, which in PythonCyc is stored in the field frameid
 of a PFrame. When the reactions were retrieved from Pathway Tools,
-the frameid values also became an attribute of the Python PGDB object meta,
+the frame id values also became attributes of the Python PGDB object meta,
 that is, we can also indexed object <tt>meta</tt> with the frame
-id. For example,
+ids. For example,
 
 <pre>
 >>> meta['|3.1.22.4-RXN|']
-</pre>
-
-gives again 
-
-<pre>
 {'_gotframe': False, '_isclass': False, 'pgdb': meta, 'frameid': u'|3.1.22.4-RXN|'}
 </pre>
 
+<p>
 This Python dictionary is a very short representation of the frame
-with almost no data. The current attributes shown, are only created by
+with almost no data. The attributes shown are only created by
 PythonCyc to maintain that frame in Python. If you access one
 slot of that reaction frame, which is not listed in that
-output, the complete frame will be retrieved from Pathway Tools. For
+output, the value of that slot is retrieved from Pathway Tools. For
 example,
+</p>
 
 <pre>
 >>> reactions[0].left
+[u'|Double-Stranded-DNAs|', u'|WATER|']
 </pre>
 
-retrieves the data for slot <tt>left</tt> but it also <b>retrieves
-all the slots and their data for that reaction</b>. Indeed, evaluating
+<p>
+retrieves the data for slot <tt>left</tt> <b>and that value is kept in the PFrame</b>. 
+Therefore, accessing several times the same slot of a frame, only triggers one communication
+to Pathway Tools because after it was accessed once, it is no longer accessed again
+from Pathway tools. (Note: the methods <tt>get_slot_values</tt> and <tt>get_slot_value</tt>
+presented later in this document always trigger a transfer from Pathway Tools.)
+We can verify that the the PFrame has the left attribute in the PFrame itself:
+</p>
 
 <pre>
 >>> reactions[0]
+{u'left': [u'|Double-Stranded-DNAs|', u'|WATER|'], '_gotframe': False, 
+'_isclass': False, 'pgdb': meta, 'frameid': u'|3.1.11.3-RXN|'}
 </pre>
 
-we get all the slots and their data, that is something like
-
-<pre>
-{u'right': [u'|Resolution-of-Recombinational-Junction|'], u'schema_p':
-True, '_isclass': False, u'template_file': u'enzyme.asn v.20.0',
-u'creator': u'|kr|', u'left': [u'|DNA-Combined-With-Exogenous-DNA|', u'|WATER|'],
-u'creation_date': 3069621160, u'reaction_direction':
-u'PHYSIOL-LEFT-TO-RIGHT', 'frameid': u'|3.1.22.4-RXN|',
-u'enzymatic_reaction': [u'|ENZRXN-2014|'], u'key_slots':
-u'|COMMON-NAME|', u'dblinks': {u'|UNIPROT|': [u'Q55506',
-u'RELATED-TO', u'green', 3381008079, None, None]},
-u'physiologically_relevant_p': [True], u'synonym_slots':
-[u'|ABBREV-NAME|', u'|SYNONYMS|'],
-u'atom_mappings': [u'ILP-IS-EMPTY'],
-'_gotframe': True, u'ec_number': [u'EC-3.1.22.4'],
-u'substrates': [u'|WATER|', u'|DNA-Combined-With-Exogenous-DNA|',
-u'|Resolution-of-Recombinational-Junction|'], 'pgdb': meta}
-</pre>
-
-<p>
-These attributes and data are now in the Python interpreter and they
-will no longer be transferred again, for that frame, from Pathway Tools unless we use
-another Python method to do so. That is, this mechanism of accessing
-attributes transfers <b>once</b> the attributes and data of a frame.
-</p>
-
-<p> If some piece of Python code accesses any attribute from many
-frames, each frame is transferred once and kept locally. For example,
-the following explicitly retrieves the left attributes for
-reactions 1 to 9, from the class reactions: 
-
-<pre>
->>> [f.left for f in reactions[1:10]]
-</pre>
-
-but it implicitly retrieves all attributes and all data for the reactions 1 to 9.
-This implicit retrieval can be verified by outputing these reactions:
-
-<pre>
->>> [f for f in reactions[1:10]]
-</pre>
-
-<p>
-Naturally, we could retrieve all the frames data for all reactions by
-using the complete list of reactions instead of just a slice. For
-MetaCyc, that would take at least one minute, because there are
-over 13,000 reactions in MetaCyc.
-</p>
 
 <h3>Explicit Transfer of Frames</h3>
 
@@ -495,8 +446,8 @@ to the PGDB object.
 For example, assuming that we have the variable <tt>reactions</tt>
 bound to the class of reactions as in the previous section,
 to retrieve all the frame data for the first 10 reactions,
-the following can be used: (We limited the retrieval to the first 10 reactions to
-make its execution fast)
+the following can be used: (We retrieve only the first 10 reactions 
+to reduce execution time)
 </p>
 
 <pre>
@@ -514,14 +465,15 @@ frames were modified and there is a need to transfer them again.
 
 <h2>Explicit Access to Slot Data Without PFrames</h2>
 
-<p>Yet another very different way to access the frame data is to use
-methods get_slot_value and get_slot_values. The first method retrieves a
-scalar value on a slot that can only have one value whereas the second
-method retrieves a list of values from a slot that can have multiple
-values. In both cases, only the data from one slot is retrieved, not
-the whole frame. That is, there are <b>no creation of PFrames</b> when using
-these functions.
-</p>
+<p>Another very different way to access the frame data is to use
+methods <tt>get_slot_value</tt> and <tt>get_slot_values</tt>.  These
+methods are among the more than 150 methods of the PGDB class which is the
+subject of the next section.  The
+first method retrieves a scalar value on a slot that can only have one
+value whereas the second method retrieves a list of values from a slot
+that can have multiple values. In both cases, only the data from one
+slot is retrieved, not the whole frame. That is, there are <b>no
+creation of PFrames</b> when using these functions.  </p>
 
 <p>For example, the following retrieve the Gibbs free
 energy of reaction RXN-9000 from MetaCyc</p>
@@ -530,58 +482,69 @@ energy of reaction RXN-9000 from MetaCyc</p>
 >>> meta.get_slot_value('RXN-9000', 'GIBBS-0')
 </pre>
 
+<p>We did not specify the vertical bars for the frame id 'RXN-9000'
+and the name of the slot 'GIBBS-0' although both are symbols in
+Pathway Tools.  The translation to symbols is handled automatically by
+the function <tt>get_slot_value</tt>, and many other functions that
+require symbols as arguments.
+</p>
+
 <p>
 The following retrieves the chemical formula of compound TRP
 </p>
 
 <pre>
 >>> meta.get_slot_values('TRP', 'CHEMICAL-FORMULA')
+{u'|N|': [2], u'|C|': [11], u'|H|': [12], u'|O|': [2]}
 </pre>
 
-<p>The method get_slot_values is needed (instead of get_slot_value, the
-singular version) because the slot 'CHEMICAL-FORMULA' keeps the
-chemical formula as a list of pairs (atom-species coefficient) where
-atom-species is the species of the atom (e.g., 'C' for carbon) and
-coefficient is an integer. In that particular case, that is, a list of
-pairs, the result will be returned as a Python dictionary where the
-keys are the atom species and the values are the coefficients.
-</p>
+<p>The method <tt>get_slot_values</tt> is needed (instead of
+<tt>get_slot_value</tt>, the singular version) because the slot
+'CHEMICAL-FORMULA' keeps the chemical formula as a list of pairs
+(atom-species coefficient) where atom-species is the species of the
+atom (e.g., 'C' for carbon) and coefficient is an integer. In that
+particular case, that is, a list of pairs, the result will be returned
+as a Python dictionary where the keys are the atom species and the
+values are the coefficients.  In the next section there is more
+explanation on data conversion between Lisp and Python.  </p>
 
 <h2>Calling Pathway Tools Functions Using a PGDB Object</h2> 
 
-<p>Using variable meta, any of the more than 150 methods from the PGDB
-module can be called, each corresponding to a specific function in
-Pathway Tools. The list of these methods (or functions), and their
-documentation, can be obtained by consulting the source code of module
-PGDB.py or by using the standard help mechanism of Python (or
-IPython).  </p>
-
-<p>Almost all these methods do not create
-PFrame objects but returns basic Python object, that is, boolean,
-numbers and strings. When a Pathway Tools object (e.g., gene, pathway,
-reaction) needs to be returned, the frame id (as a string)
-is returned. For example, the following call
-retrieves all the pathways from meta by returning a list of frame ids
-(as strings):
+<p>Using a variable bound to a PGDB object, which is the case for
+variable <tt>meta</tt> from the previous sections, any of the more than 150
+methods from the PGDB class can be called, each corresponding to a
+specific function in Pathway Tools. The list of these methods (or
+functions), and their documentation, can be obtained by consulting the
+source code of file <tt>PGDB.py</tt> or by using the standard help mechanism
+of Python (or IPython). For example,
 </p>
+
+<pre>
+>>> help(pythoncyc.PGDB)
+</pre>
+
+will list the source documentation of the class PGDB with the list of
+all methods. For a particular function, you can request its documentation
+by naming the function. For example,
+
+<pre>
+>>> help(pythoncyc.PGDB.get_slot_value)
+</pre>
+
+<p>Almost all these methods do not create PFrame objects but returns
+basic Python object, that is, boolean, numbers, strings, lists,
+dictionaries, and so on. When a Pathway Tools object (e.g., gene,
+pathway, reaction) needs to be returned, the frame id (as a string) is
+returned. For example, the following call retrieves all the pathways
+from meta by returning a list of frame ids (as strings): </p>
 
 <pre>
 >>> pwys = meta.all_pathways()
 </pre>
 
-<p>To create PFrames, and the data about pathways, using frame ids, you can use the
-method <tt>get_frame_objects</tt>. For example, the following will create all
-the PFrames for all the frame ids in variable pwys:
-</p>
-
-<pre>
->>> pframe_pwys = meta.get_frame_objects(pwys) 
-</pre>
-
-<p>The variable <tt>pframe_pwys</tt> has been assigned a list of PFrames, one
-PFrame per pathway and all created PFrame objects were bound to the
-PGDB object meta.
-</p>
+<p>As presented in the previous section, to create PFrames, and the
+data about pathways, using frame ids, you can use the method
+<tt>get_frame_objects</tt>. 
 
 <p>Many other Lisp functions, defined in Pathway Tools, can be called using
 Python's syntax. These functions often need a frame as one of the parameter.
@@ -594,7 +557,7 @@ A frame can be specified as a frame id (a string) or as a PFrame object. For exa
 
 <p>
 where 'TRP' is the frame id of compound L-tryptophan. The
-reactions_of_compound method (which is a function in Pathway Tools)
+<tt>reactions_of_compound</tt> method (which is a function in Pathway Tools)
 retrieves all reaction frame ids that
 use TRP as a substrate. Note that, if the given frame id was not
 existing in the PGDB, it would raise a PToolsError in PythonCyc because
@@ -603,11 +566,11 @@ Pathway Tools itself will report a 'non coercible frame'.
 
 <p>A PFrame can also be used instead of the frame id. For example, 
 <tt>meta.trp</tt> refers to a PFrame for compound TRP and
-can be used to do the same operation we just did, that is
+can be used to do the same operation we just did, that is,
 </p>
 
 <pre>
->>> meta.reactions_of_compound(trp)
+>>> meta.reactions_of_compound(meta.trp)
 </pre>
 
 <p>
@@ -631,10 +594,169 @@ indicates to use the default value of the Lisp function called. These defaults
 are given for each function listed below.
 </p>   
 
-<p>Again, there are many more methods that can be called to access functions
-in Pathway Tools. Please, consult the file <tt>PGDB.py</tt> for the complete
-list of available methods and their documentation.
+<p>The transfer of all data from Pathway Tools to PythonCyc is done
+using the JSON (JavaScript Object Notation) syntax. On the other hand,
+PythonCyc <b>does not use</b> JSON for the transfer of data from
+Python to Pathway Tools because Pathway Tools uses Lisp and it is
+simpler to use a Lisp syntax for that transfer.  Some conversion rules
+are applied on data types when transferring data to and from Pathway
+Tools and we discuss these in the following. Note that all the special
+rules of conversion from Lisp to Python is based on what the JSON Lisp
+package does whereas the special rules of conversion from Python to
+Lisp is what the method <tt>convertArgToLisp</tt>, of class PGDB,
+does.
 </p>
+
+<p>During conversion, the numbers are kept relatively unchanged:
+integers and floating-point numbers are translated using the same
+types but floating-point numbers are not guaranteed to have the same
+precision. In Lisp and Python, infinite precision of integers are
+implemented. The rational numbers of Lisp are translated to
+floating-point numbers in Python.  
+</p>
+
+<p>The Python value <tt>True</tt> is translated into <tt>t</tt> in Lisp whereas
+<tt>False</tt> and <tt>None</tt> are translated into <tt>nil</tt> in Lisp.
+The value <tt>t</tt> in Lisp is translated into <tt>True</tt> in Python.
+On the other hand, the value <tt>nil</tt> in Lisp is translated into
+<tt>False</tt>, <tt>None</tt> or the empty list <tt>[]</tt> in Python depending
+on the context. It is translated to <tt>False</tt> when a PythonCyc method
+is called that expects a boolean value as a result: for example, the
+PythonCyc method <tt>pathway_hole_p</tt> does return <tt>False</tt> when
+the result of the corresponding function in Lisp is nil. It is translated
+to the empty list <tt>[]</tt> when a PythonCyc
+method is called that expects a list as a result: for example, the 
+PythonCyc method <tt>get_slot_values</tt> does return <tt>[]</tt>
+when the slot value is <tt>nil</tt>. Finally, the <tt>nil</tt>
+values is translated to <tt>None</tt> when the result is not
+known to be a boolean or a list value: for example, the
+PythonCyc method <tt>get_slot_value</tt> would return <tt>None</tt>
+if the slot value is <tt>nil</tt>.
+</p>
+
+<p>Any Lisp string is translated into a Python string. A Python string
+that starts and ends with a '|', and contains no space, is assumed to
+represent a symbol and is translated successfully into one if indeed
+the Python string follows the correct syntax of a Lisp symbol. For example,
+the Python string <tt>"|RXN-9000|"</tt> is translated into the Lisp
+symbol <tt>RXN-9000</tt>.</p>
+
+<p>Lisp lists are translated to Python lists, but with one exception:
+a Lisp list where all elements are non empty lists are translated into
+a Python dictionary. For example, some data frame slots of Pathway
+Tools have a list of lists as values, such as the slot
+<tt>chemical-formula</tt>: the chemical formula H2O is represented as
+the list of lists <tt>((H 2) (O 1))</tt>, where H and O are symbols,
+in that slot. Each sublist is translated, in JSON, to a key/value pair
+in a dictionary, where the key is the first element of the sublist and
+the value is the rest of the list. Therefore, the value <tt>((H 2) (O
+1))</tt> is translated into teh Python dictionary <tt>{'|H|' : [2],
+'|O|' : [1]}</tt>. H and O are translated into frame ids because they
+are symbols that do exist as frame ids in the PGDB and the
+coefficients 2 and 1 are translated into lists of one element because
+the rest of each sublist is a list.
+</p>
+
+<p>A dictionary in Python is translated into a list of dotted pairs or
+list of lists when transferred to Pathway Tools. For example,
+<tt>{'|H|' : [2], '|O|' : [1]}</tt> is translated into <tt>((H 2) (O
+1))</tt>, which is the desired Lisp representation in Pathway Tools
+for the a chemical-formula slot value. On the other hand the Python
+dictionary <tt>{'|H|' : 2, '|O|' : 1}</tt> would be translated into
+<tt>((H . 2) (O . 1))</tt>, that is, a list of dotted pairs, which is
+not the desired Lisp representation for that slot.  
+</p>
+
+<p>A vector from Pathway Tools is translated into a Python Lisp.
+Note: there is no basic vector type in Python.
+</p>
+
+<p>Finally, a Python tuple is translated into an improper Lisp list.
+For example, the Python tuple <tt>(1, 2, 3)</tt> is translated
+into the improper Lisp list <tt>(1 2 . 3)</tt>. The last element
+of the list is preceded by a dot, which makes it an improper list.
+Note that the particular case of a tuple with only one element is translated
+into an improper list of <tt>nil</tt> followed by the element. For example,
+the Python tuple <tt>(2,)</tt> is translated into <tt>(nil . 2)</tt>. 
+Improper lists are uncommon in Pathway Tools such that you may never need
+to worry about them. 
+<p>
+
+<p>If you modify the slots of data frames in Pathway Tools, via the
+PythonCyc interface, care must be taken to store the appropriate data
+structures and use the appropriate corresponding Python data
+structures.  As we just saw, this should not be a problem for numbers,
+strings, booleans and list of these basic types as the translation is
+one to one. For example, the value of the slot <tt>synonyms</tt> of compound
+frames is a list of strings, the synonyms of the compounds:
+</p>
+
+<pre>
+>>> meta.get_slot_values('atp', 'synonyms')
+[u'adenylpyrophosphate', u'adenosine-triphosphate', u"adenosine-5'-triphosphate"]
+</pre>
+
+<p>
+You could modify that list, say to only include the first two synonyms, in the following
+way:
+</p>
+
+<pre>
+>>> meta.put_slot_values('atp', 'synonyms', [u'adenylpyrophosphate', u'adenosine-triphosphate'])
+</pre>
+
+<p> Note: Typically, modifying a slot should be done on your own
+created PGDB, not on MetaCyc.  In any case, you will not be able to
+save MetaCyc and any slots modified in MetaCyc will be restored to its
+original value after you restart the Pathway Tools application.  </p>
+
+<p>
+As for a slot such as <tt>chemical-formula</tt>, you can represent the
+value to store in the slot as a list of lists, such as:
+</p>
+
+<pre>
+>>> meta.put_slot_values('water', 'chemical-formula', [['|H|',2],['|O|',1]])
+{u'|H|': [2], u'|O|': [1]}
+</pre>
+
+<p>The returned value is a dictionary that contains frames ids (i.e., the vertical bars
+surrounding H and O indicate that they are symbols). Or you can use a dictionary
+as in
+</p>
+
+<pre>
+>>> meta.put_slot_values('water', 'chemical-formula', {u'|H|': [2], u'|O|': [1]})
+</pre>
+
+<p>
+In all cases, care must be taken to have the right representation when
+modifying a frame slot of a PGDB in Pathway Tools because, at the moment of
+modifiying the slot, there is no verification of the validity of
+the data being stored.
+</p>
+
+<p> When a slot is supposed to contain frames, storing the frame ids
+in the slot automatically convert these frame ids into frame
+references.  For example, the slot <tt>structure-atoms</tt> is a list
+of atom species frames. To modify it would simply require to list the
+atom species frame ids. For example, for compound water: </p>
+
+<pre>
+>>> meta.put_slot_values('water', 'structure-atoms', ['|O|', '|H|', '|H|'])
+</pre>
+
+<p>Notice that we passed the frame ids O and H using the vertical bars.
+This is needed because otherwise these would be taken as strings not symbols that
+refer to frame object in Pathway Tools.
+</p>
+
+<p>As already mentioned, there are many more methods that can be
+called to access functions in Pathway Tools. Please, consult the file
+<tt>PGDB.py</tt> for the complete list of available methods and their
+documentation.  
+</p>
+
 
 <h2>More on PFrame Objects</h2>
 <a name="pframes">
@@ -660,25 +782,50 @@ To do so, you need to import the class PFrame:
 
 <p>
 The required parameters to create a PFrame are the frame id (a string) and a PGDB
-object. For example, assuming that 'meta' is bound to a PGDB object, the following
+object. For example, assuming that variable <tt>meta</tt> is bound to a PGDB object, the following
 create a PFrame to represent the reaction RXN-9000,
 </p>
 
 <pre>
 >>> PFrame('RXN-9000', meta)
+{'_gotframe': False, '_isclass': False, 'pgdb': <PGDB meta, currently has 1 PFrames>, 
+ 'frameid': '|RXN-9000|'}
 </pre>
 
 <p>
 By default, an instance PFrame (not a class PFrame) is created and
 the data of the frame is not requested from the server, that is,
-a PFrame object is created containing only the frame id and the PGDB.
-On the other hand, all its slots and data can be fetched from Pathway Tools by
-specifying the keyword argument <tt>getFrameData=True</tt>. For example, the following
-create a frame for reaction RXN-9000 and retrieve all its slots and data,
+a PFrame object is created containing only the frame id, the PGDB and a fews other
+attributes to maintain the PFrame. This is what the print out of that frame shows
+above. That PFrame is also attached, as an attribute, to the PGDB meta. That
+can be seen by evaluating 
+</p>
+
+<pre>
+>>> meta._frames.keys()
+['rxn_9000']
+</pre>
+
+<p>
+By specifying the keyword argument <tt>getFrameData=True</tt>, all slots and data of the frame are retrieved 
+from Pathway Tools. For example, the following
+create a PFrame for reaction RXN-9000 and retrieve all its slots and data,
 </p>
 
 <pre>
 >>> PFrame('RXN-9000', meta, getFrameData=True)
+{u'enzymatic_reaction': [u'|ENZRXN-14558|'], u'right': [u'|PROTON|', u'|CPD-9460|', u'|UDP|'], 
+u'schema_p': True, '_isclass': False, u'creator': u'|Kate|', u'ec_number': [u'|EC-2.4.1.17|'], 
+u'creation_date': 3408307573, u'reaction_direction': u'|LEFT-TO-RIGHT|', 'frameid': '|RXN-9000|', 
+u'in_pathway': [u'|PWY-5756|'], u'left': [u'|CPD-9459|', u'|UDP-GLUCURONATE|'], 
+u'citations': [u'WOJCIECHOWSKI75'], u'key_slots': u'|COMMON-NAME|', u'physiologically_relevant_p': [True], 
+u'synonym_slots': [u'|ABBREV-NAME|', u'|SYNONYMS|'], u'atom_mappings': {u'|NO-HYDROGEN-ENCODING|': 
+[[38, 37, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 6, 
+7, 9, 10, 12, 13, 60, 61, 62, 63, 64, 65, 66, 19, 20, 22, 24, 23, 68, 69, 67, 32, 0, 1, 2, 3, 4, 
+5, 8, 11, 14, 15, 16, 17, 18, 21, 25, 29, 33, 28, 26, 27, 30, 31, 34, 36, 35], 
+[{u'|CPD-9459|': [37, 69], u'|UDP-GLUCURONATE|': [0, 36]}, {u'|CPD-9460|': [0, 44], u'|UDP|': [45, 69]}]]}, 
+'_gotframe': True, u'gibbs_0': 2.7000000000000002, u'substrates': [u'|UDP-GLUCURONATE|', 
+u'|CPD-9459|', u'|PROTON|', u'|CPD-9460|', u'|UDP|'], 'pgdb': <PGDB meta, currently has 1 PFrames>}
 </pre>
 
 <p>
@@ -694,21 +841,15 @@ When creating a class, if <tt>getFrameData=True</tt> is specified, the class slo
 data are fetched and all the instances of the class are also created
 as, mostly empty, PFrames. They are mostly empty in the sense that the
 slots and data of the instances are not transferred, but only the
-frame id of each frame.  
-</p>
-
-<p>
-In all cases, accessing one attribute of a PFrame object will bring in all attributes data
-for that PFrame, if the data for that PFrame has not been retrieved.
-For example, a PFrame of a reaction which has not be populated yet, accessing the attribute left
-triggers the transfer of all the slots and data, from Pathway Tools,
-to the PFrame.
+frame id of each frame initialized each PFrame.  
 </p>
 
 <p>
 The attribute values of the PFrames cannot be modified, that is, attributes are read only.
+If you try to modify a PFrame attribute, a PythonCycError is raised.
 On the other hand, slots of Pathway Tools' objects can be modified using methods
-<tt>put_slot_value</tt> and <tt>put_slot_values</tt>. See class PGDB for these methods.
+<tt>put_slot_value</tt> and <tt>put_slot_values</tt>. In that case, the PGDB
+itself in Pathway Tools is modified. See class PGDB for these methods.
 </p>
 
 <h2>Remotely Accessing Pathway Tools</h2>
@@ -737,7 +878,7 @@ remote computers increasing cybersecurity.
 
 <p>
 Second, you need to
-use the config module of PythonCyc to set the appropriate hostname
+use the config module of PythonCyc to set the appropriate host name
 of that remote computer. For example, assuming that the remote computer
 is at address 'ptools.mydomain.com' (this is a fictive address for
 this example). The following would configure
@@ -746,21 +887,22 @@ PythonCyc to communicate with it:
 
 <pre>
 >>> import pythoncyc.config as config
->>> config.set_hostname('ptools.mydomain.com')
+>>> config.set_host_name('ptools.mydomain.com')
 </pre>
 
 <p>If for some reason the Pathway Tools Python server is not using the default port
 (i.e., 5008),  but some other port such as 5000,
-it can also be configured on the PythonCyc side by using set_hostport
+it can also be configured on the PythonCyc side by using method <tt>set_host_port</tt>
 </p>
 
 <pre>
->>> config.set_hostport(5000)
+>>> config.set_host_port(5000)
 </pre>
 
 <p>
-The preceding Python configuration must be done before any other
-operation using PythonCyc.
+The preceding Python configuration can be done at any time and it affects 
+all future operations of PythonCyc. It could be done several times to 
+access different Pathway Tools running on different ports or host names.
 </p>
 
 <h2>Complete Examples</h2>
@@ -773,39 +915,37 @@ orgid. The result is a Python dictionary with keys as the frame ids of
 the reactions and the values as lists of the substrates' Gibbs free
 energy of each reaction.  </p>
 
-<pre>
-import pythoncyc
-
-def gather_gibbs_cpd_reactions(orgid):
-     """
-     Return a dictionary of all reactions with the Gibbs free energies of formation 
-     of their substrates.
-     The keys are the frame ids of the reactions and the values are lists of Gibbs
-     free energies of formation.
-     """
-     pgdb = pythoncyc.select_organism(orgid)
-     rxn_frameids = pgdb.all_rxns(type='all')
-     gibbs_dict = {}
-     for fid in rxn_frameids:
-         subs_fids = pgdb.get_slot_values(fid,'SUBSTRATES')
-         gibbs_dict[fid] = [pgdb.get_slot_value(fid_cpd, 'GIBBS-0') for fid_cpd in subs_fids]
-     return gibbs_dict
-</pre>
-
 <p>This function does not create any PFrame but uses the basic <tt>get_slot_value</tt>
 and <tt>get_slot_values</tt> to retrieve data from Pathway Tools. The function
 <tt>all_rxns</tt> retrieves the frame ids of all reactions from the PGDB,
 then the substrates slot is accessed to get the compound
 frame ids involved in each reaction. Finally, for each compound frame id, the slot
-'GIBBS-0' is accessed to create a list of Gibbs free energies values.
-</p>
-
-<p>This function could be called in the following way assuming that
-the orgid 'ecoli' is available from the Python server of Pathway Tools.
+'GIBBS-0' is accessed to create pairs of compound frame id and Gibbs free energies values
+transformed into a dictionary using the Python <tt>dict</tt> function.
 </p>
 
 <pre>
->>> gather_gibbs_cpd_reactions('ecoli')
+def gather_gibbs_substrates_of_reactions(orgid):
+     """
+     Return a dictionary of all reactions of PGDB orgid with the Gibbs free energies of formation 
+     of their substrates. The keys are the frame ids of the reactions and the values are dictionaries
+     of compound frame ids to Gibbs free energies of formation.
+     """
+     pgdb = pythoncyc.select_organism(orgid)
+     rxn_frameids = pgdb.all_rxns(type='all')
+     gibbs_dict = {}
+     for rxn_fid in rxn_frameids:
+         cpds_fids = pgdb.get_slot_values(rxn_fid,'SUBSTRATES')
+         gibbs_dict[rxn_fid] = dict([(cpd_fid, pgdb.get_slot_value(cpd_fid, 'GIBBS-0')) for cpd_fid in cpds_fids])
+     return gibbs_dict
+</pre>
+
+<p>This function could be called in the following way assuming that
+the PGDB with orgid 'ecoli' is available from the Python server of Pathway Tools.
+</p>
+
+<pre>
+>>> gibbs_dict = gather_gibbs_substrates_of_reactions('ecoli')
 </pre>
 
 <p>
@@ -813,7 +953,35 @@ This function may take more than 30 seconds to execute because it is retrieving
 a large amount of data from Pathway Tools. 
 </p>
 
-<h3></h3>
+<h3>Function to Create a PGDB with all its Compounds and Reactions</h3>
+<p>
+The following is a simple function to create a PGDB object based on
+the organism name (i.e., orgid) and retrieve all its basic PFrames for
+compounds and reactions. Note that these PFrames has no other data 
+than their frame ids.
+</p>
+
+<pre>
+def create_pgdb_with_compounds_and_reactions(orgid):
+     """
+     Create a PythonCyc PGDB object with all its compounds and reactions
+     PFrames created. Return the PGDB object.
+     """
+     pgdb = pythoncyc.select_organism(orgid)
+     pgdb.compounds
+     pgdb.reactions
+     return pgdb
+</pre>
+
+<p> Assuming that the PGDB ecoli is available on your running Pathway
+Tools server, the following call would bound variable <tt>pgdb</tt> to a PGDB
+object containing the PFrames for the compounds and reactions of
+ecoli: </p>
+
+<pre>
+pgdb = create_pgdb_with_compounds_and_reactions('ecoli')
+</pre>
+
 
 <h2>Support</h2>
 

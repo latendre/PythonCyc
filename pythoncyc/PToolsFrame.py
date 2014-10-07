@@ -37,6 +37,16 @@ def convertLispIdtoPythonId(s):
     """
     return s.replace('-','_').replace('.','_').replace('?','_p').replace('|','').lower()
 
+class Symbol():
+    """
+    This class can be used to represent Lisp symbols in PythonCyc.
+    For example, Symbol('trp') represents the symbol trp. It is mainly used
+    to ensure that some arguments of methods are interpreted as symbols and not
+    as strings during the translation to send a request to Pathway Tools.
+    """
+    def __init__(self, name):
+        self._name = name
+        return None
 
 class PFrame():
     """
@@ -91,14 +101,13 @@ class PFrame():
 
     def __init__(self, frameid, pgdb, getFrameData=False, isClass = False):
         """
+        The PFrame is created assuming that the frameid is coercible to a frame in the PGDB.
+        In particular, the frameid string is not converted and must have the appropriate camel case.
         Creation of a PFrame is done lazily when getFrameData is False but is retrieved
         now when getFrameData is True.
-        If getFrameData is False, the PFrame is created assuming that the frameid exists in
-        the PGDB in which case an access to a slot will trigger the transfer of the
-        whole frame.
         """
         # Always store the frameid surrounded by vertical bars.
-        self.__dict__['frameid'] =  frameid if (frameid.startswith('|') and frameid.endswith('|')) else '|'+frameid+'|'
+        self.__dict__['frameid'] =  frameid if (frameid.startswith('|') and frameid.endswith('|')) else '|'+frameid+'|' 
         self._isclass = isClass
         if isClass:
            self.__dict__['instances'] = []
@@ -108,13 +117,14 @@ class PFrame():
         self.__dict__['pgdb'] = pgdb
         # Add this frame on the list of current frames for this pgdb.
         pgdb.__dict__['_frames'][convertLispIdtoPythonId(frameid)] = self
+        # Retrieve the whole frame from Pathway Tools if requested.
         # TBD: add the frame on the list of instances for the corresponding class.
         if getFrameData:
             self.get_frame_data()
         return None
 
     # The following four definitions are for the pickle (or cPickle) module.
-
+    # TBD: this is work in progress.
     def __getinitargs__(self):
         return (self.frameid, self.pgdb)
     
@@ -152,13 +162,13 @@ class PFrame():
                 return None
                 # raise PythonCycError('No slot with name %s exists for frame %s.' % (attr, self.frameid))
         else: 
-            # Get the frame object from Pathway Tools.
-            self.get_frame_data()
+            # Get the slot value from Pathway Tools.
+            self.get_frame_slot_value(attr)
             if not (attrId in self.__dict__):
                 return None
                 # raise PythonCycError('No slot with name %s exists for frame %s.' % (attr, self.frameid))
             else:
-                return self.__dict__[attr]
+                return self.__dict__[attrId]
 
     def __getitem__(self,attr):
         if config._debug:
@@ -181,6 +191,23 @@ class PFrame():
 
     def __dir__(self):
         return (dir(self.__class__) + self.__dict__.keys())
+
+    def get_frame_slot_value(self, slot):
+        """
+        Retrieve the slot data for frame from Pathway Tools. 
+
+        Return
+           the self PFrame, modified with the new slot with data.
+        """
+        # FrameObject is a dictionary of slot names and values.
+        [slotName, value] = self.pgdb.sendPgdbFnCall('get-frame-slot-value', self.frameid, Symbol(slot))
+        if not slotName:
+            raise PythonCycError("Slot "+slot+" does not exist for frame "+self.frameid+" from organism (orgid) "+self.pgdb._orgid)
+        # Modify slot name to allow Python's syntax (e.g., '_' instead of '-').
+        self.__dict__[convertLispIdtoPythonId(slotName)] = value
+        self.__dict__[slot] = value
+        return self
+
 
     def get_frame_data(self):
         """
