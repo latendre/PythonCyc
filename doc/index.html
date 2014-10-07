@@ -48,10 +48,13 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 <h2>Installation</h2>
 
-<p>PythonCyc should be accessible from your running Python
-interpreter. To do so, install PythonCyc according to one of
-the following platforms.
-</p>
+<p>We assume that you have downloaded PythonCyc from
+<a href="https://github.com/latendre/PythonCyc">PythonCyc at GitHub</a>.
+This may be done by using git cloning or by downloading the zip
+file of PythonCyc from GitHub.
+The next step is to make PythonCyc accessible from your running Python
+interpreter. To do so, install PythonCyc according to one of the
+following platforms.  </p>
 
 <h3>Mac OS X and Linux</h3>
 
@@ -60,24 +63,22 @@ Open a terminal window and change your directory to the location where
 you unpacked the PythonCyc package. You should have the file setup.py in
 that directory and the subdirectory pythoncyc. Assuming that 'shell>'
 is the prompt of your current Unix shell, execute the following
-command using 'sudo':
+command:
 </p>
 
 <pre>
 shell> sudo python setup.py install
 </pre>
 
-<p>
-This may prompt you for your login password because sudo may requires
-it. This command copies several files from the pythoncyc subdirectory
-to other locations on your computer where PythonCyc is installed,
-byte-compiles these files and may do other operations depending on the
-Python installation you have. No error messages should be reported. In case
-of errors, make sure you have installed Python and that it is working. To
-test your PythonCyc installation, please consult the
-Section <a href="#gettingStarted">Getting Started</a> in this
-document.
-</p>
+<p> This may prompt you for your login password because sudo requires
+authorization to modify some system directories. This command copies
+several files from the pythoncyc subdirectory to other locations on
+your computer where Python is installed, byte-compiles these files
+and may do other operations depending on the Python installation you
+have. No error messages should be reported. In case of errors, make
+sure you have installed Python and that it is working. To test your
+PythonCyc installation, please consult the Section <a
+href="#gettingStarted">Getting Started</a> in this document.  </p>
 
 <h3>Microsoft Windows</h3>
 
@@ -85,15 +86,14 @@ On a Microsoft Windows platform, starts a command prompt window using
 the start/Accessories menu, then change the directory to the location
 where you unpacked the PythonCyc package. You should have the file
 <tt>setup.py</tt> in that directory and the subdirectory <tt>pythoncyc</tt>. 
-Then, at
-the command prompt, execute the following command:
+Then, at the command prompt, execute the following command:
 
 <pre> 
  python setup.py install
 </pre>
 
 This command copies several files from the pythoncyc subdirectory
-to other locations on your computer where PythonCyc is installed,
+to other locations on your computer where Python is installed,
 byte-compiles these files and may do other operations depending on the
 Python installation you have. No error messages should be reported. In case
 of errors, make sure you have installed Python and that it is working. To
