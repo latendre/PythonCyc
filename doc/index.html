@@ -437,12 +437,11 @@ We can verify that the the PFrame has the left attribute in the PFrame itself:
 
 <p>Another very different approach to retrieve all the data
 of a list of frames is by using the Python method
-<tt>get_frame_objects</tt>.
+<tt>get_frame_objects</tt> defined for a PGDB object.
 That method takes a list of frame ids as input and send a request to
 Pathway Tools to transfer all the slots and their data for all the
-frames identified by these frame ids. The function creates a PFrame
-for each frames retrieved. But the <b>PFrames are not attached</b>
-to the PGDB object.
+frames identified by these frame ids. The function creates a PFrame,
+for each frames retrieved, for the PGDB, if none exist. 
 </p>
 
 <p>
@@ -652,8 +651,8 @@ Tools have a list of lists as values, such as the slot
 the list of lists <tt>((H 2) (O 1))</tt>, where H and O are symbols,
 in that slot. Each sublist is translated, in JSON, to a key/value pair
 in a dictionary, where the key is the first element of the sublist and
-the value is the rest of the list. Therefore, the value <tt>((H 2) (O
-1))</tt> is translated into teh Python dictionary <tt>{'|H|' : [2],
+the value is the rest of the list. Therefore, the Lisp value <tt>((H 2) (O
+1))</tt> is translated into the Python dictionary <tt>{'|H|' : [2],
 '|O|' : [1]}</tt>. H and O are translated into frame ids because they
 are symbols that do exist as frame ids in the PGDB and the
 coefficients 2 and 1 are translated into lists of one element because
