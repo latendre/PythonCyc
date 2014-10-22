@@ -978,9 +978,9 @@ class PGDB():
           A list of protein frames that are involved in the specified form
           of regulation. 
       """
-      kwargs = {'allow-modified-forms': allow_modified_forms,
+      kwargs = {'allow-modified-forms?': allow_modified_forms,
                 'class' : Symbol(class_name)}
-      return self.sendPgdbFnCallList('all_genetic_regulation_proteins', **kwargs)
+      return self.sendPgdbFnCallList('all-genetic-regulation-proteins', **kwargs)
   
   
     def rxns_w_isozymes(self, rxns=None):
@@ -1677,7 +1677,7 @@ class PGDB():
   
     #  Operations on Enzymatic-Reactions
   
-    def cofactors_and_pgroups_of_enzrxn(self, eznrxn):
+    def cofactors_and_pgroups_of_enzrxn(self, enzrxn):
       """
       Description
           Returns the cofactors and prosthetic groups of an enzymatic
@@ -1714,6 +1714,7 @@ class PGDB():
       Return value
           A list of children of the class Chemicals. 
       """
+      # phys_relevant_only is optional for the Lisp version
       return self.sendPgdbFnCallList('enzrxn-activators', may_be_frameid(er), phys_relevant_only)
   
     def enzrxn_inhibitors(self, er, phys_relevant_only=None):
@@ -1735,7 +1736,8 @@ class PGDB():
       Return value
           A list of children of the class Chemicals. 
       """
-      return self.sendPgdbFnCallList('enzrxn_inhibitors', may_be_frameid(er), phys_relevant_only)
+      # phys_relevant_only is optional for the Lisp version
+      return self.sendPgdbFnCallList('enzrxn-inhibitors', may_be_frameid(er), phys_relevant_only)
   
     def pathways_of_enzrxn(self, enzrxn, include_super_pwys=None):
       """
@@ -1760,7 +1762,7 @@ class PGDB():
           A list of instances of class Pathways. 
       """
       kwargs = {'include-super-pwys?': include_super_pwys}
-      return self.sendPgdbFnCallList('pathways_of_enzrxn', may_be_frameid(enzrxn), **kwargs)
+      return self.sendPgdbFnCallList('pathways-of-enzrxn', may_be_frameid(enzrxn), **kwargs)
   
     def pathway_allows_enzrxn(self, pwy, rxn, enzrxn, single_species=None):
       """
@@ -1789,10 +1791,13 @@ class PGDB():
       Return value
           A boolean value. 
       """
+      # single_species is optional for the Lisp version.
       return self.sendPgdbFnCallBool('pathway-allows-enzrxn', may_be_frameid(pwy), may_be_frameid(rxn), may_be_frameid(enzrxn), single_species)
   
+    #
     # Operations on Proteins
-  
+    #  
+
     def monomers_of_protein(self, p, coefficients=None, unmodify=None):
       """
       Description
@@ -1842,7 +1847,8 @@ class PGDB():
           RNA, and Compounds. The second value is a list of the
           corresponding coefficients of the components in the first value. 
       """
-      return self.sendPgdbFnCall('base-components-of-protein', may_be_frameid(p), exclude_small_molecules)
+      kwargs = {'exclude-small-molecules?': exclude_small_molecules}
+      return self.sendPgdbFnCall('base-components-of-protein', may_be_frameid(p), **kwargs)
   
     def containers_of(self, protein, exclude_self=None):
       """
@@ -1862,6 +1868,7 @@ class PGDB():
       Return value
           A list of instances of the class Proteins. 
       """
+      # exclude_self is an optional parameter for the Lisp fn version.
       return self.sendPgdbFnCallList('containers-of', may_be_frameid(protein), exclude_self)
   
     def protein_or_rna_containers_of(self, protein, exclude_self=None):
@@ -1884,6 +1891,7 @@ class PGDB():
       Return value
           A list of instances of the class Proteins. 
       """
+      # exclude_self is an optional parameter for the Lisp fn version.
       return self.sendPgdbFnCallList('protein-or-rna-containers-of', may_be_frameid(protein), exclude_self)
   
     def homomultimeric_containers_of(self, protein, exclude_self=None):
@@ -1904,6 +1912,7 @@ class PGDB():
       Return value
           A list of instances of the class Proteins. 
       """
+      # exclude_self is an optional parameter for the Lisp fn version.
       return self.sendPgdbFnCallList('homomultimeric-containers-of', may_be_frameid(protein), exclude_self)
   
     def polypeptide_or_homomultimer_p(self, protein):
@@ -2039,6 +2048,7 @@ class PGDB():
       Return value
           A list of instances of the class Proteins. 
       """
+      # Parameters exclude_self and all_variants are optionals for the Lisp fn version.
       return self.sendPgdbFnCallList('modified-forms', may_be_frameid(protein), exclude_self, all_variants)
   
     def modified_and_unmodified_forms(self, protein):
@@ -2165,7 +2175,7 @@ class PGDB():
           A list of instances of the class Reactions. 
       """
       kwargs = {'kb': kb, 'include-specific-forms?': include_specific_forms}
-      return self.sendPgdbFnCallList('reactions_of_enzyme', may_be_frameid(protein), **kwargs)
+      return self.sendPgdbFnCallList('reactions-of-enzyme', may_be_frameid(protein), **kwargs)
   
     def species_of_protein(self, protein):
       """
@@ -2291,7 +2301,7 @@ class PGDB():
       Return value
           A list of instances of class Reactions. 
       """
-      return self.sendPgdbFnCallList('reactions_of_protein', may_be_frameid(protein), 
+      return self.sendPgdbFnCallList('reactions-of-protein', may_be_frameid(protein), 
                                  check_protein_components, check_protein_containers)
   
     def protein_in_compartment_p(self, rxn, compartments, default_ok=None, pwy=None, loose=None):
@@ -3210,7 +3220,7 @@ class PGDB():
           of activator proteins, and the second value is a list of
           inhibitor proteins. 
       """
-      kwargs = {'by_function?' : by_function}
+      kwargs = {'by-function?' : by_function}
       return self.sendPgdbFnCall('regulators-of-gene', may_be_frameid(gene), **kwargs)
   
     def transcription_unit_activators(self, tu):
@@ -3264,6 +3274,7 @@ class PGDB():
           of the protein is the transcription factor, then that is the
           protein returned. 
       """
+      # Parameter by_function is optional for the Lisp fn.
       return self.sendPgdbFnCallList('regulators-of-operon-transcription', may_be_frameid(operon_list), by_function)
   
     def transcription_unit_promoter(self, tu):
@@ -3555,6 +3566,7 @@ class PGDB():
     #
     #  Methods on Compounds
     #
+
     def reactions_of_compound(self, cpd, non_specific_too=None,transport_only=None,compartment=None,enzymatic=None):
       """
       Description
@@ -3703,7 +3715,7 @@ class PGDB():
       kwargs = {'include-inactive?': include_inactive}
       return self.sendPgdbFnCallList('tfs-bound-to-compound', may_be_frameid(cpd), **kwargs)
   
-     # Object Name Manipulation Operations
+    # Object Name Manipulation Operations
   
   
     def get_name_string(self, item, rxn_eqn_as_name=None, rxn_common_name_as_name=None,
@@ -3800,6 +3812,7 @@ class PGDB():
       Return value
           A string. 
       """
+      # Parameters use_frame_name, name and activity_names are optional for the Lisp fn version.
       return self.sendPgdbFnCall('full-enzyme-name', may_be_frameid(enzyme), use_frame_name, 
                                  name, activity_names)
   
@@ -3821,6 +3834,7 @@ class PGDB():
       Return value
           A string. 
       """
+      # Parameter reaction is optional for the Lisp fn version.
       return self.sendPgdbFnCall('enzyme-activity-name', may_be_frameid(enzyme), may_be_frameid(reaction))
  
  
