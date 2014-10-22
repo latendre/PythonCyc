@@ -482,6 +482,7 @@ energy of reaction RXN-9000 from MetaCyc</p>
 
 <pre>
 >>> meta.get_slot_value('RXN-9000', 'GIBBS-0')
+7.5217285
 </pre>
 
 <p>We did not specify the vertical bars for the frame id 'RXN-9000'
@@ -593,7 +594,7 @@ Some functions have keywords arguments, which are always optional. But notice
 that the default value is often the Python value <tt>None</tt>.
 The value <tt>None</tt> is not translated to <tt>False</tt>, but
 indicates to use the default value of the Lisp function called. These defaults
-are given for each function listed below.
+are given in the documentation of each PythonCyc method.
 </p>   
 
 <p>The transfer of all data from Pathway Tools to PythonCyc is done
@@ -625,7 +626,7 @@ On the other hand, the value <tt>nil</tt> in Lisp is translated into
 on the context. It is translated to <tt>False</tt> when a PythonCyc method
 is called that expects a boolean value as a result: for example, the
 PythonCyc method <tt>pathway_hole_p</tt> does return <tt>False</tt> when
-the result of the corresponding function in Lisp is nil. It is translated
+the result of the corresponding function in Lisp is <tt>nil</tt>. It is translated
 to the empty list <tt>[]</tt> when a PythonCyc
 method is called that expects a list as a result: for example, the 
 PythonCyc method <tt>get_slot_values</tt> does return <tt>[]</tt>
@@ -643,21 +644,20 @@ the Python string follows the correct syntax of a Lisp symbol. For example,
 the Python string <tt>"|RXN-9000|"</tt> is translated into the Lisp
 symbol <tt>RXN-9000</tt>.</p>
 
-<p>Lisp lists are translated to Python lists, but with one exception:
-a Lisp list where all elements are non empty lists are translated into
-a Python dictionary. For example, some data frame slots of Pathway
-Tools have a list of lists as values, such as the slot
-<tt>chemical-formula</tt>: the chemical formula H2O is represented as
-the list of lists <tt>((H 2) (O 1))</tt>, where H and O are symbols,
-in that slot. Each sublist is translated, in JSON, to a key/value pair
-in a dictionary, where the key is the first element of the sublist and
-the value is the rest of the list. Therefore, the Lisp value <tt>((H 2) (O
-1))</tt> is translated into the Python dictionary <tt>{'|H|' : [2],
-'|O|' : [1]}</tt>. H and O are translated into frame ids because they
-are symbols that do exist as frame ids in the PGDB and the
-coefficients 2 and 1 are translated into lists of one element because
-the rest of each sublist is a list.
-</p>
+<p>Lisp lists are translated to Python lists, but with one important
+exception: a Lisp list where all elements are non empty sublists, and
+every first element of each sublist is a symbol or string, are
+translated into a Python dictionary. For example, the
+slot <tt>chemical-formula</tt> has such lists: the chemical formula H2O is
+represented as the list of sublists <tt>((H 2) (O 1))</tt>, where H and O
+are symbols, in that slot. Each sublist is translated, in JSON, to a
+key/value pair in a dictionary, where the key is the first element of
+the sublist and the value is the rest of the list. Therefore, the Lisp
+value <tt>((H 2) (O 1))</tt> is translated into the Python dictionary
+<tt>{'|H|' : [2], '|O|' : [1]}</tt>. Notice that H and O are translated into Python strings
+with the vertical bars to indicate that they are symbols
+and the coefficients 2 and 1 are translated into lists of one element
+because the rest of each sublist is a list.  </p>
 
 <p>A dictionary in Python is translated into a list of dotted pairs or
 list of lists when transferred to Pathway Tools. For example,
@@ -666,7 +666,9 @@ list of lists when transferred to Pathway Tools. For example,
 for the a chemical-formula slot value. On the other hand the Python
 dictionary <tt>{'|H|' : 2, '|O|' : 1}</tt> would be translated into
 <tt>((H . 2) (O . 1))</tt>, that is, a list of dotted pairs, which is
-not the desired Lisp representation for that slot.  
+not the desired Lisp representation for that slot but could be used
+correctly in some other context although Pathway Tools rarely use
+dotted pairs.  
 </p>
 
 <p>A vector from Pathway Tools is translated into a Python Lisp.
@@ -714,7 +716,7 @@ original value after you restart the Pathway Tools application.  </p>
 
 <p>
 As for a slot such as <tt>chemical-formula</tt>, you can represent the
-value to store in the slot as a list of lists, such as:
+value to store in the slot as a list of sublists, such as:
 </p>
 
 <pre>
@@ -754,10 +756,10 @@ refer to frame object in Pathway Tools.
 </p>
 
 <p>As already mentioned, there are many more methods that can be
-called to access functions in Pathway Tools. Please, consult the file
-<tt>PGDB.py</tt> for the complete list of available methods and their
-documentation.  
-</p>
+called to access functions in Pathway Tools and some of them can run
+complex analysis. For example, there is a method to run flux balance
+analysis (FBA) called <tt>run_fba</tt>. Please, consult the file <tt>PGDB.py</tt> for the
+complete list of available methods and their documentation.  </p>
 
 
 <h2>More on PFrame Objects</h2>
