@@ -205,7 +205,6 @@ class PFrame():
             raise PythonCycError("Slot "+slot+" does not exist for frame "+self.frameid+" from organism (orgid) "+self.pgdb._orgid)
         # Modify slot name to allow Python's syntax (e.g., '_' instead of '-').
         self.__dict__[convertLispIdtoPythonId(slotName)] = value
-        self.__dict__[slot] = value
         return self
 
 
@@ -232,13 +231,13 @@ class PFrame():
     
     def __setattr__(self, attr, val):
         if not attr.startswith('_'):
-            raise PythonCycError("Attributes of PFrame objects cannot be modified "+str((self.frameid,attr,val))+". Use methods put_slot_value or put_slot_values using a PGDB object instead.")
+           raise PythonCycError("PFrames are read only objects. Attributes of PFrame objects cannot be modified "+str((self.frameid,attr,val))+". You can only modify slot frames for the PGDB in the running Pathway Tools by using methods put_slot_value or put_slot_values using a PGDB object.")
         self.__dict__[attr] = val
         return None
     
     def __setitem__(self, attr, val):
         if not attr.startswith('_'):
-            raise PythonCycError("Attributes of PFrame objects cannot be modified "+str((self.frameid,attr,val))+". Use methods put_slot_value or put_slot_values using a PGDB object instead.")
+            raise PythonCycError("PFrames are read only objects. Attributes of PFrame objects cannot be modified "+str((self.frameid,attr,val))+". You can only modify slot frames for the PGDB in the running Pathway Tools by using methods put_slot_value or put_slot_values using a PGDB object.")
         self.__dict__[attr] = val
         return None
     

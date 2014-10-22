@@ -306,7 +306,7 @@ class PGDB():
            self.__dict__[attr] = val
            return None
         attrId = convertLispIdtoPythonId(attr)
-        if isinstances(val, PFrame):
+        if isinstance(val, PFrame):
             self._frames[attrId] = val
         else:
             self.__dict__[attrId] = val        
@@ -360,7 +360,7 @@ class PGDB():
 
     def __setitem__(self, attr, val):
         attrId = convertLispIdtoPythonId(attr)
-        if isinstances(val, PFrame):
+        if isinstance(val, PFrame):
             self._frames[attrId] = val
         else:
             self.__dict__[attrId] = val
@@ -503,18 +503,44 @@ class PGDB():
             A PFrame representing the class with all its slot names
             as Python attributes.
         """
-        f = PFrame(realClassName, self, getFrameData=True, isClass = True)
+        fclass = PFrame(realClassName, self, getFrameData=True, isClass = True)
         attrId = convertLispIdtoPythonId(realClassName)
-        frameids = self.sendPgdbFnCallList('get-class', f)
+        frameids = self.sendPgdbFnCallList('get-class', fclass)
         if not (frameids == None):
             if getInstancesData:
                 # Create PFrame instances with all their slots and data.
                 instances = self.get_frame_objects(frameids)
             else:
                 # Create PFrame instances but the data for each frame is not brought in now.
-                instances = [PFrame(frameid, self) for frameid in frameids]
-                f.__dict__['instances'] = instances
-        return f 
+                # Reuse a PFrame for a frameid, if it already exists for this PGDB.
+                instances = self.create_frame_objects(frameids)
+                fclass.__dict__['instances'] = instances
+        return fclass 
+
+    def create_frame_objects(self, frameids):
+        """
+        Create all the required PFrames for the given frameids.
+        If a PFrame already exist for a frameid on the PGDB, reuse
+        that PFrame, otherwise create a PFrame. No data is transferred
+        from Pathway Tools.
+
+        Argument
+           frameids, list of frame ids (strings)
+        Side-Effects
+           self is modified to contain new PFrames indexed on new frameids
+        Return
+           list of PFrames
+        """
+        pframes = []
+        for frameid in frameids:
+            attrID = convertLispIdtoPythonId(frameid)
+            if attrID in self.__dict__:
+                f = self.__dict__[attrID]
+            else:
+                f = PFrame(frameid, self)
+                self.__dict__[attrID] = f
+            pframes.append(f)
+        return pframes
 
     def get_frame_objects(self, frameids):
         """
@@ -2838,7 +2864,7 @@ class PGDB():
       """
       return self.sendPgdbFnCallBool('inhibition-p', may_be_frameid(reg_frame))
   
-    def direct_regulators(self, item, filter=None):
+    def direct_regulators(self, item, filter_fn=None):
       """
       Description
           Return all regulators that are connected to a regulated object
@@ -2856,7 +2882,8 @@ class PGDB():
       Return value
           A list of frames that regulate item. 
       """
-      return self.sendPgdbFnCallList('direct-regulators', may_be_frameid(item), filter)
+      kwargs = {'filter-fn': filter_fn}
+      return self.sendPgdbFnCallList('direct-regulators', may_be_frameid(item), **kwargs)
   
     def direct_activators(self, item):
       """
@@ -3183,7 +3210,8 @@ class PGDB():
           of activator proteins, and the second value is a list of
           inhibitor proteins. 
       """
-      return self.sendPgdbFnCall('regulators-of-gene-transcription', may_be_frameid(gene), by_function)
+      kwargs = {'by_function?' : by_function}
+      return self.sendPgdbFnCall('regulators-of-gene', may_be_frameid(gene), **kwargs)
   
     def transcription_unit_activators(self, tu):
       """
