@@ -387,8 +387,8 @@ class PGDB():
     
     def __eq__(self, other):
         # The name of the orgid determines the object.
-        if isinstance(o, PGDB):
-            return self._orgid == o._orgid
+        if isinstance(other, PGDB):
+            return self._orgid == other._orgid
         else:
             return False
 
