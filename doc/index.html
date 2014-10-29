@@ -76,7 +76,9 @@ several files from the pythoncyc subdirectory to other locations on
 your computer where Python is installed, byte-compiles these files
 and may do other operations depending on the Python installation you
 have. No error messages should be reported. In case of errors, make
-sure you have installed Python and that it is working. To test your
+sure you have installed Python and that it is working. 
+
+<p>To test your
 PythonCyc installation, please consult the Section <a
 href="#gettingStarted">Getting Started</a> in this document.  </p>
 
@@ -151,7 +153,7 @@ You should get a prompt such as &gt;&gt;&gt;, then enter the following
 This command imports the PythonCyc module to access its classes,
 functions and methods. If any error messages is given when this command
 make sure PythonCyc has been installed according to the Installation instructions.
-Then enter the command:
+Then enter the command
 </p>
 
 <pre>
@@ -161,17 +163,13 @@ Then enter the command:
 <p>This command sends a request to Pathway Tools to create a
 <b>PGDB</b> object associated with the database MetaCyc, which is
 specified using the 'meta' organism identifier (i.e., orgid). That PGDB
-object is assigned to the variable <tt>meta</tt>. If you want to
-have a list of all PGDBs, in their orgids, accessible from your
-running Pathway Tools, evaluate <tt>pythoncyc.all_orgids()</tt>.
+object is assigned to the variable <tt>meta</tt>. (If you get
+an error message, it could be that Pathway Tools was not started 
+as given above.)
 </p>
 
 <p>
-If this command executes without any error, Pathway Tools and 
-PythonCyc can communicate with each other.
-</p>
-
-Printing out the Python <tt>meta</tt> variable you should get:
+Print out the Python <tt>meta</tt> variable
 
 <pre>
 >>> print meta
@@ -182,11 +180,17 @@ Printing out the Python <tt>meta</tt> variable you should get:
 This means that <tt>meta</tt> is bound to a PGDB object, its orgid is meta and
 it has currently no PFrames attached to it. Indeed, currently we only created
 a PGDB object that has no <i>data frames</i> in it. The following sections will show
-how to retrieve data frames from Pathway Tools to PythonCyc.
+how to retrieve data frames from Pathway Tools to PythonCyc via this variable <tt>meta</tt>.
 </p>
 
-<p>Other useful methods are available from the pythoncyc module.
-Please, consult the source file __init__.py for them. Also, more
+<p>
+If you want to have a list of all PGDBs, and their orgids, accessible from your
+running Pathway Tools, evaluate <tt>pythoncyc.all_orgids()</tt>.
+
+<p>Please, consult the source file <tt>__init__.py</tt> for other 
+fundamental methods available from the pythoncyc module.
+
+<p>Also, more
 advanced technical documentation is provided for each method and
 functions by consulting the PythonCyc modules config.py, PGDB.py,
 PToolsFrame.py and PTools.py. As usual, the Python <tt>help</tt>
@@ -202,7 +206,7 @@ for a PGDB object.
 
 <p> Using that variable <tt>meta</tt>, it is now possible to request data from the
 MetaCyc database.  For example, the following statement retrieves compound
-TRP (i.e., L-tryptophan). 'TRP' is the <b>frame id</b> of compound L-tryptophan), which we
+TRP (i.e., L-tryptophan). 'TRP' is the <b>frame id</b> of compound L-tryptophan, which we
 can also specify in lower case letters: 
 </p>
 
