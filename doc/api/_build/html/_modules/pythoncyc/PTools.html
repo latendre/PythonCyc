@@ -1,0 +1,269 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pythoncyc.PTools &mdash; pythoncyc  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="pythoncyc  documentation" href="../../index.html" />
+    <link rel="up" title="pythoncyc" href="../pythoncyc.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">pythoncyc  documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../pythoncyc.html" accesskey="U">pythoncyc</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pythoncyc.PTools</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Mario Latendresse, June 2014.</span>
+
+<span class="sd">Handle basic operations for receiving and sending messages via a network socket</span>
+<span class="sd">to Pathway Tools.</span>
+
+<span class="sd">No major class is defined in this file, but only toplevel functions and</span>
+<span class="sd">some simple classes for raising errors.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">socket</span> <span class="kn">as</span> <span class="nn">so</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">pythoncyc.config</span> <span class="kn">as</span> <span class="nn">config</span>
+
+<div class="viewcode-block" id="recvAll"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.PTools.recvAll">[docs]</a><span class="k">def</span> <span class="nf">recvAll</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Receive the entire message sent by Pathway Tools on socket s.</span>
+<span class="sd">    The message starts with a single character type, which is either &#39;A&#39;</span>
+<span class="sd">    or &#39;L&#39;. The &#39;A&#39; time is used without providing a length but can take</span>
+<span class="sd">    longer to receive because it uses a timeout technique to read the entire</span>
+<span class="sd">    message. The &#39;L&#39; type assumes that the length of the message, in characters,</span>
+<span class="sd">    is given on the next 10 characters as an integer. The message length is the</span>
+<span class="sd">    number of characters after these 10 characters.</span>
+
+<span class="sd">    Argument</span>
+<span class="sd">       s, an open network socket.</span>
+<span class="sd">    Return</span>
+<span class="sd">       the message received on socket s as a string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;recvAll ...&#39;</span>
+    <span class="c"># Get the type of message which is one character long.</span>
+    <span class="nb">type</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c"># print &quot;type &quot;, type</span>
+    <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s">&#39;A&#39;</span><span class="p">:</span>
+        <span class="c"># The length of the message is not given, use time out approach.</span>
+        <span class="k">return</span> <span class="n">recvTimeOut</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s">&#39;L&#39;</span><span class="p">:</span>
+        <span class="c"># The next 10 characters give the length.</span>
+        <span class="n">lengthMsg</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">recvFixedLength</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;lengthMsg &quot;</span><span class="p">,</span> <span class="n">lengthMsg</span>
+        <span class="k">return</span> <span class="n">recvFixedLength</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">lengthMsg</span><span class="p">)</span>            
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Something is broken on the server side, so</span>
+        <span class="c"># use recv with a long timeout to try flushing</span>
+        <span class="c"># the sent message.</span>
+        <span class="k">return</span> <span class="n">recvTimeOut</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">timeOut</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="sendAll"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.PTools.sendAll">[docs]</a><span class="k">def</span> <span class="nf">sendAll</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">query</span><span class="p">):</span>
+    <span class="n">sent_len</span>  <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">query_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">sent_len</span> <span class="o">&lt;</span> <span class="n">query_len</span><span class="p">:</span>
+        <span class="n">nb_chars</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">query</span><span class="p">[</span><span class="n">sent_len</span><span class="p">:])</span>
+        <span class="k">if</span> <span class="n">nb_chars</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PythonCycError</span><span class="p">(</span><span class="s">&quot;Connection to Pathway Tools broke while sending query </span><span class="si">%s</span><span class="s">.&quot;</span> <span class="o">%</span> <span class="n">query</span><span class="p">)</span>
+        <span class="n">sent_len</span> <span class="o">=</span> <span class="n">sent_len</span> <span class="o">+</span> <span class="n">nb_chars</span>
+</div>
+<div class="viewcode-block" id="recvFixedLength"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.PTools.recvFixedLength">[docs]</a><span class="k">def</span> <span class="nf">recvFixedLength</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">lengthMsg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Receive a fixed length message on socket s.</span>
+<span class="sd">    Argument</span>
+<span class="sd">        lengthMsg, an integer, which is the length in characters of the </span>
+<span class="sd">                   message to receive.</span>
+<span class="sd">    Return</span>
+<span class="sd">        the message received as a string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pieces</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">nbBytesRecv</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">nbBytesRecv</span> <span class="o">&lt;</span> <span class="n">lengthMsg</span><span class="p">:</span>
+        <span class="n">piece</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">lengthMsg</span> <span class="o">-</span> <span class="n">nbBytesRecv</span><span class="p">,</span> <span class="mi">4096</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">piece</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+            <span class="c"># Give up now because nothing was received.</span>
+            <span class="k">return</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pieces</span><span class="p">)</span>
+        <span class="n">pieces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">piece</span><span class="p">)</span>
+        <span class="n">nbBytesRecv</span> <span class="o">=</span> <span class="n">nbBytesRecv</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">piece</span><span class="p">)</span>
+    <span class="c"># print &#39;Fixed receive: &#39;,  &#39;&#39;.join(pieces)</span>
+    <span class="k">return</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pieces</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="recvTimeOut"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.PTools.recvTimeOut">[docs]</a><span class="k">def</span> <span class="nf">recvTimeOut</span><span class="p">(</span><span class="n">socket</span><span class="p">,</span> <span class="n">timeOut</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Receive a message of unknown length on socket. While receiving a message, if no</span>
+<span class="sd">    more characters are sent on socket after timeOut seconds, it is</span>
+<span class="sd">    assumed that the message has ended. Therefore, it will always, whatever the lenght</span>
+<span class="sd">    of the message, take at least timeOut seconds to execute this method. If no character</span>
+<span class="sd">    is received after 60 seconds, this method returns with an empty message.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">         socket, an open network socket.</span>
+<span class="sd">         timeOut, number of seconds before timing out between fragments of the received</span>
+<span class="sd">                  message.</span>
+<span class="sd">    Return</span>
+<span class="sd">         The received message, as a string, on socket.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Keep each received packet in an array.</span>
+    <span class="n">pieces</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c"># Keep track of time between recvs.</span>
+    <span class="n">begin</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c"># If we started to get data and the timeOut occurs,</span>
+        <span class="c"># we assume that Pathway Tools sent everything.</span>
+        <span class="k">if</span> <span class="n">pieces</span> <span class="ow">and</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">begin</span> <span class="o">&gt;</span> <span class="n">timeOut</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="k">elif</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">begin</span> <span class="o">&gt;</span> <span class="mi">60</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="c"># Try to receive some text.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">4096</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">pieces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                <span class="c"># Reset beginning time for next recv.</span>
+                <span class="n">begin</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># Slow down in case timeOut is small.</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">so</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+            <span class="k">pass</span>
+    
+    <span class="c"># Join all the pieces together.</span>
+    <span class="k">if</span> <span class="n">pieces</span> <span class="o">==</span> <span class="p">[]:</span>
+        <span class="k">return</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pieces</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="sendQueryToPTools"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.PTools.sendQueryToPTools">[docs]</a><span class="k">def</span> <span class="nf">sendQueryToPTools</span><span class="p">(</span><span class="n">query</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    Send a query to a running Pathway Tools application via a socket.</span>
+<span class="sd">    </span>
+<span class="sd">    Argument</span>
+<span class="sd">      query, a string that the Python server in Pathway Tools can evaluate. </span>
+<span class="sd">    Returns</span>
+<span class="sd">      The result of the query, as a Python object, decoded by Json.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;Sending query &#39;</span><span class="o">+</span><span class="n">query</span>
+    <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">_hostname</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+       <span class="k">raise</span> <span class="n">PToolsError</span><span class="p">(</span><span class="s">&#39;The hostname to connect to a running Pathway Tools has not been set. Use function config.set_hostname() to set the host name of your running Pathway Tools.&#39;</span><span class="p">)</span> 
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">so</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">so</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">so</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+        <span class="c"># Make socket non blocking.</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">setblocking</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">settimeout</span><span class="p">(</span><span class="mi">360</span><span class="p">)</span>  <span class="c"># The query may take a long time in some cases.</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="n">config</span><span class="o">.</span><span class="n">_hostname</span><span class="p">,</span><span class="n">config</span><span class="o">.</span><span class="n">_hostport</span><span class="p">))</span>
+    <span class="k">except</span> <span class="n">so</span><span class="o">.</span><span class="n">error</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">PToolsError</span><span class="p">(</span><span class="s">&#39;Failed to create a connection to a running Pathway Tools at &#39;</span><span class="o">+</span> <span class="n">config</span><span class="o">.</span><span class="n">_hostname</span><span class="o">+</span> <span class="s">&#39; on port &#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">_hostport</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;. Make sure Pathway Tools is running with option -python. Error code: &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">msg</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;, error message: &#39;</span><span class="o">+</span> <span class="n">msg</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="c"># Send, receive and close socket.</span>
+    <span class="n">sendAll</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">query</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;Sent &#39;</span><span class="o">+</span><span class="n">query</span><span class="o">+</span><span class="s">&#39; to Pathway Tools.&#39;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">recvAll</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">_debug</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">response</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4000</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;JSON Received: &#39;</span><span class="p">,</span> <span class="n">response</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="nb">basestring</span><span class="p">)</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;:error&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">PToolsError</span><span class="p">(</span><span class="s">&#39;An internal error occurred in the running Pathway Tools application: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">r</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Return some result.</span>
+        <span class="k">return</span> <span class="n">r</span>
+</div>
+<div class="viewcode-block" id="PythonCycError"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.PTools.PythonCycError">[docs]</a><span class="k">class</span> <span class="nc">PythonCycError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Error generated by one of the module of PythonCyc due to an incorrect</span>
+<span class="sd">    use of its methods or functions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="PToolsError"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.PTools.PToolsError">[docs]</a><span class="k">class</span> <span class="nc">PToolsError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Error generated when Pathway Tools send an error due to its own Lisp execution.&quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">pythoncyc  documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../pythoncyc.html" >pythoncyc</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, PythonCyc API.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

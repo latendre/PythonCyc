@@ -1,0 +1,178 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pythoncyc &mdash; pythoncyc  documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="pythoncyc  documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">pythoncyc  documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for pythoncyc</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Mario Latendresse, June 2014.</span>
+
+<span class="sd">This is PythonCyc, a Python interface module to Pathway Tools.</span>
+<span class="sd">This code has been tested with Python 2.7.</span>
+
+<span class="sd">Pathway Tools (version 18.5 and up) must be running on some machine</span>
+<span class="sd">with at least the option &#39;-python&#39;. It is also recommended</span>
+<span class="sd">to start Pathway Tools with the option -lisp, so that the</span>
+<span class="sd">connection can be monitored:</span>
+
+<span class="sd">./pathway-tools -lisp -python</span>
+
+<span class="sd">The global functions defined in this init file can be called before any</span>
+<span class="sd">PGDB (an organism database in Pathway Tools) has been selected.</span>
+<span class="sd">In fact, two of these functions, select_organism and</span>
+<span class="sd">its synonym so, are needed to &quot;select&quot; a PGDB by creating a PGDB object.</span>
+<span class="sd">See class PGDB in PGDB.py for information about how to use a PGDB object.</span>
+
+<span class="sd">See the README.txt file for more documentation about PythonCyc.</span>
+
+<span class="sd">For comments, questions and bug reports about PythonCyc,</span>
+<span class="sd">send an email to ptools-support@ai.sri.com</span>
+
+<span class="sd">Acknowledgments</span>
+<span class="sd">---------------</span>
+
+<span class="sd">Thanks to Eli Bogart to have inspired some implementation details</span>
+<span class="sd">of PythonCyc via PyCyc, Tomer Altman for the</span>
+<span class="sd">Pathway Tools API documentation at http://brg.ai.sri.com/ptools/api/</span>
+<span class="sd">and Daniel Weaver for suggestions to implement some specific functions.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">PGDB</span> <span class="kn">import</span> <span class="n">PGDB</span>
+<span class="kn">from</span> <span class="nn">PTools</span> <span class="kn">import</span> <span class="n">sendQueryToPTools</span>
+
+<div class="viewcode-block" id="select_organism"><a class="viewcode-back" href="../pythoncyc.html#pythoncyc.select_organism">[docs]</a><span class="k">def</span> <span class="nf">select_organism</span><span class="p">(</span><span class="n">orgid</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Select an organism PGDB based on its unique organism id.</span>
+<span class="sd">       orgid: string, the unique organism id in Pathway Tools (e.g., ecoli, meta).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">PGDB</span><span class="p">(</span><span class="n">orgid</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="so"><a class="viewcode-back" href="../pythoncyc.html#pythoncyc.so">[docs]</a><span class="k">def</span> <span class="nf">so</span><span class="p">(</span><span class="n">orgid</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A synonym of method select_organism. &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">select_organism</span><span class="p">(</span><span class="n">orgid</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="all_orgids"><a class="viewcode-back" href="../pythoncyc.html#pythoncyc.all_orgids">[docs]</a><span class="k">def</span> <span class="nf">all_orgids</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    Returns all organism unique ids (orgids) available </span>
+<span class="sd">    from the current running Pathway Tools. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">orgids</span> <span class="o">=</span> <span class="n">sendQueryToPTools</span><span class="p">(</span><span class="s">&#39;(all-orgids)&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">orgids</span>
+</div>
+<div class="viewcode-block" id="biovelo"><a class="viewcode-back" href="../pythoncyc.html#pythoncyc.biovelo">[docs]</a><span class="k">def</span> <span class="nf">biovelo</span><span class="p">(</span><span class="n">query</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Execute a BioVelo query and return the result.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">      query: a string, which is a BioVelo query.</span>
+<span class="sd">    Returns </span>
+<span class="sd">       Whatever the BioVelo query computes.</span>
+<span class="sd">    </span>
+<span class="sd">    Example</span>
+<span class="sd">       bv(&#39;[(p, reactions-of-pathway(p)): p&lt;-ecoli^^pathways]&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">sendQueryToPTools</span><span class="p">(</span><span class="s">&#39;(biovelo &quot;&#39;</span><span class="o">+</span><span class="n">query</span><span class="o">+</span><span class="s">&#39;&quot;)&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="bv"><a class="viewcode-back" href="../pythoncyc.html#pythoncyc.bv">[docs]</a><span class="k">def</span> <span class="nf">bv</span><span class="p">(</span><span class="n">query</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A synonym of method biovelo.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">biovelo</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="run_fba"><a class="viewcode-back" href="../pythoncyc.html#pythoncyc.run_fba">[docs]</a><span class="k">def</span> <span class="nf">run_fba</span><span class="p">(</span><span class="n">fileName</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The function run_fba does not need to have an organism selected before</span>
+<span class="sd">    being used because the FBA input file provided as input can specify</span>
+<span class="sd">    the organism.</span>
+
+<span class="sd">    For the documentation of this function, see method run_fba</span>
+<span class="sd">    in file PGDB.py.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">sendQueryToPTools</span><span class="p">(</span><span class="s">&#39;(python-run-fba &quot;&#39;</span><span class="o">+</span><span class="n">fileName</span><span class="o">+</span><span class="s">&#39;&quot;)&#39;</span><span class="p">)</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">pythoncyc  documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, PythonCyc API.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
