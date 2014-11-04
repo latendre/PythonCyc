@@ -1,31 +1,31 @@
+# Copyright (c) 2014, SRI International
+# 
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+# 
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# ----------------------------------------------------------------------
+
 """
-Copyright (c) 2014, SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-----------------------------------------------------------------------
-
-Handle basic operations for receiving and sending messages via a
+This module handles basic operations for receiving and sending messages via a
 network socket to Pathway Tools.
 
 No major class is defined in this file, but only toplevel functions and
-some simple classes for raising errors.
+some simple classes for errors handling.
 
 """
 
@@ -46,7 +46,7 @@ def recvAll(s):
     is given on the next 10 characters as an integer. The message length is the
     number of characters after these 10 characters.
 
-    Argument
+    Parm
        s, an open network socket.
     Return
        the message received on socket s as a string.
@@ -84,7 +84,7 @@ def sendAll(s, query):
 def recvFixedLength(s, lengthMsg):
     """
     Receive a fixed length message on socket s.
-    Argument
+    Parm
         lengthMsg, an integer, which is the length in characters of the 
                    message to receive.
     Return
@@ -110,7 +110,7 @@ def recvTimeOut(socket, timeOut=2):
     of the message, take at least timeOut seconds to execute this method. If no character
     is received after 60 seconds, this method returns with an empty message.
 
-    Arguments
+    Parms
          socket, an open network socket.
          timeOut, number of seconds before timing out between fragments of the received
                   message.
@@ -152,7 +152,7 @@ def sendQueryToPTools(query):
     """ 
     Send a query to a running Pathway Tools application via a socket.
     
-    Argument
+    Parm
       query, a string that the Python server in Pathway Tools can evaluate. 
     Returns
       The result of the query, as a Python object, decoded by Json.

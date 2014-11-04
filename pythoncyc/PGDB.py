@@ -1,29 +1,24 @@
-"""
-Copyright (c) 2014, SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-----------------------------------------------------------------------
-
-For the documentation of this module, see class PGDB below.
-
-"""
+# Copyright (c) 2014, SRI International
+# 
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+# 
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# ----------------------------------------------------------------------
 
 import PTools
 import sys
@@ -48,10 +43,11 @@ def may_be_frameid(x):
 def mkey(s):
    """ 
    A simple function to convert a string into a Lisp keyword.
-   Argument
+
+   Parm
        s, any Python object
-   Return
-       if s is a string, the string s suffixed by ':', otherwise s itself.
+   Returns
+       if s is a string, it is suffixed by ':', otherwise s itself.
    """
    if isinstance(s,basestring):
       return ':'+s
@@ -133,119 +129,9 @@ def prepareFnCall(fn, *args, **kwargs):
 
 class PGDB():
     """
-    Note: This is a summary. For a more complete documentation, please
-    consult the web page at
-    http://brg.ai.sri.com/ptools/pythoncyc.html.
-    
-    A PGDB object represents a Pathway Tools PGDB (Pathway/Genome
-    Database).  A PGDB object is created when one of the global
-    methods 'so' or 'select_organism' are called. See file __init__.py
-    for the definitions of these methods. For example, the Python
-    statement
-    
-      meta = pythoncyc.so('meta')
-    
-    creates a PGDB object that refers to the MetaCyc Pathway Genome
-    database (PGDB), and assign it to variable meta. The 'meta' string
-    is the orgid of that PGDB.
-    
-    A PGDB object is used to communicate with Pathway Tools to
-    retrieve frames and other data of the corresponding PGDB. For
-    example, after creating the meta object above, the following
-    retrieves compound TRP (i.e., L-tryptophan) and assign it to
-    variable trp ('TRP' is the frame id of this compound but in 
-    PythonCyc we can use lower case letters when using a Python 
-    attribute)
-    
-      trp = meta.trp
-    
-    The operation meta.trp, if done for the first time, triggers a
-    call to Pathway Tools to send the complete frame object of
-    compound trp stored in Metacyc: the slots and their data are sent
-    back and a PFrame to represent the compound trp is created. A slot
-    in a data frame of Pathway Tools becomes an attribute of a PFrame
-    object in PythonCyc.
+    Please consult the the tutorial.html file under the doc directory
+    for an introduction on how to use this class.
 
-    In PythonCyc, frame ids are shown prefixed and suffixed by '|', such as
-
-           print trp.frameid
-       =>  |TRP|
-
-    The '|...|' is used to indicate that this string represents a
-    frame id and can be interpreted by Pathway Tools as a frame id. In
-    Lisp, the programming language used by Pathway Tools, the double
-    vertical bars signify that this is a symbol and that it must be
-    read exactly as given without any transformation (e.g., no case
-    conversion on letters).
-
-    This PFrame for trp is also bound to the PGDB meta. That is,
-    executing meta.trp again would not retrieve the data from Pathway
-    Tools, but use the PFrame already created for it.
-
-    The attributes of a PFrame can be referenced in several ways, for
-    example to retrieve the attribute 'common-name':
-
-       1) trp.common_name
-
-       2) trp['COMMON-NAME']
-
-    The first form uses Python's syntax to access an attribute of an
-    object. The second form uses indexing. The attribute name is
-    converted to the real slot name of Pathway Tools which uses
-    dashes, not underscores, and all letters are converted to upper
-    case.  Naturally, attribute names in Python cannot use dashes, so
-    PythonCyc allows the use of underscores instead of the dashes as
-    used by Pathway Tools.
-
-    Many more operations can be done using a PGDB object, such as
-    retrieving classes of objects (e.g., reactions, pathways, genes)
-    or calling one of the more than 150 methods listed below. For
-    example, retrieving all reactions can be done by
-
-      reactions = meta.reactions
-
-    which assigns to variable reactions a PFrame representing the
-    class of reactions from PGDB meta. This PFrame has an attribute
-    'instances' assigned with the list of all reaction instances of
-    meta. Each such reaction is a PFrame, although these PFrames have
-    no other data than the frame id of each reaction. Also, all these
-    PFrames are bound to PGDB meta.
-    
-    The operation meta.reactions differs from using the method
-    all_reactions. The operation
-
-       meta.all_reactions(type='all')
-
-    returns all reaction frame ids in PGDB meta. It does not create
-    any PFrame. A second call meta.all_reactions(type='all') will
-    request again the list of frame ids from Pathway Tools. This is
-    not the case for meta.reactions where only one request will be
-    made. The call to method all_reactions is useful if indeed no
-    PFrame should be created and only the frame ids are needed. This
-    discussion is similar for almost all methods listed below where in
-    most cases the return value is not a PFrame or a list of PFrames.
-
-    Many Lisp functions can be called using Python's syntax. These
-    functions often need a frame identifier. A frame identifier can be
-    given as a string or as PFrame object.  For example,
-
-        meta.reactions_of_compound('TRP')
-
-    where 'TRP' is the frame id of compound L-tryptophan.  Or using
-    the trp variable assigned above (which is a PFrame with frame id
-    'TRP')
-
-        meta.reactions_of_compound(trp)
-
-    Note that, if the given frame id does not exist in the PGDB, it
-    will raise a PToolsError in Python because Pathway Tools itself
-    will report a 'non coercible frame'.
-
-    Some functions have keywords arguments, which are always
-    optional. But notice that the default value is often None. The
-    value None is not translated to False, but indicates to use the
-    default value of the Lisp function called. These defaults are
-    given for each function listed below.
     """
 
     def __init__(self, orgid):
@@ -426,7 +312,7 @@ class PGDB():
         Send a query for a specific PGDB using its orgid.
         Use the macro with-organism for the Lisp Python server.
 
-        Argument
+        Parm
            query, a string. That string should be acceptable to the Lisp Python server.
         Return
            the result (as a Pyton object) of the execution of the query in Pathway Tools.
@@ -475,7 +361,7 @@ class PGDB():
         Return the real name of that class because the className may have
         been transformed by fn class-name-p to generate the closest real class name.
 
-        Argument
+        Parm
            className, a string, the class name to verify.
         Return
             a string, either className itself, or modified by replacing
@@ -492,7 +378,7 @@ class PGDB():
         in attribute 'instances' of the class object. If getInstancesData is True,
         get also all instances slots and their data. 
 
-        Arguments
+        Parms
            realClassName, a string, the real name of the class to retrieve.
            attr,          a string, the name used by the caller to retrieve that class.
            getInstancesData, boolean, True => get the slots and data of all instances.
@@ -524,7 +410,7 @@ class PGDB():
         that PFrame, otherwise create a PFrame. No data is transferred
         from Pathway Tools.
 
-        Argument
+        Parm
            frameids, list of frame ids (strings)
         Side-Effects
            self is modified to contain new PFrames indexed on new frameids
@@ -548,7 +434,7 @@ class PGDB():
         and their data. Reuse the PFrame of frameid if it already exist for this PGDB,
         otherwise create one and attach it to this PGDB.
 
-        Argument
+        Parm
             frameids, list of frame ids (strings).
         Return
             list of PFrames, one for each frame id.
@@ -575,7 +461,7 @@ class PGDB():
         If not, try to convert it to a real frame id by transforming cases of
         letters and underscores to dashes.
 
-            Argument
+            Parm
                frameid, a string.
 
             Returns
@@ -589,7 +475,7 @@ class PGDB():
           ClassName must be exactly as Pathway Tools expect the name of the class,
           no conversion is applied.
 
-          Argument
+          Parm
             className, a string (e.g., Reactions)
 
           Returns
@@ -604,7 +490,7 @@ class PGDB():
        Notice though that the FBA input file provided will decide which organism
        is used for running FBA and may override this PGDB.
 
-       Arguments
+       Parms
            fileName, a string which is the name of the FBA input file on the
                      running Pathway Tools machine.
 
@@ -626,7 +512,7 @@ class PGDB():
     def get_slot_values(self, frameid, slotName):
        """
        Return the slot values of a frame object.
-       Arguments
+       Parms
            frameid
               a string representing the unique identifier for a frame object.
            slotName
@@ -651,7 +537,7 @@ class PGDB():
        Important: The modified frame is not updated for any PFrame object that might has been
                   previously loaded from that PGDB. This operation should be used only
                   for its effect on the PGDB in the running Pathway Tools application.
-       Arguments
+       Parms
            frameid
               a string representing the unique identifier for a frame object.
            slotName
@@ -678,7 +564,7 @@ class PGDB():
                   previously loaded from that PGDB. This operation should be used only
                   for its effect on the PGDB in the running Pathway Tools application.
        
-       Arguments
+       Parms
            frameid
               a string representing the unique identifier for a frame object.
            slotName
@@ -700,7 +586,7 @@ class PGDB():
     def get_slot_value(self, frameid, slotName):
        """
        Return the single slot value of a frame object.
-       Arguments
+       Parms
            frameid
               a string representing the unique identifier for a frame object.
            slotName
@@ -722,7 +608,7 @@ class PGDB():
       """    
       Description
           Returns a list of pathway instance frames of a specified type. 
-      Arguments
+      Parms
   
           selector
               Selects whether all pathways, or just
@@ -747,7 +633,7 @@ class PGDB():
       """  
       Description
           Returns a set of reactions that fall within a particular category. 
-      Arguments
+      Parms
   
           type
               The type of reaction to return. Defaults to
@@ -801,7 +687,7 @@ class PGDB():
       Description
           Returns all unique substrates used in the reactions specified by
           the argument rxns. 
-      Arguments
+      Parms
   
           rxns
               A list of reaction PFrames or frame ids.
@@ -819,7 +705,7 @@ class PGDB():
       """
       Description
           Return a list of all cofactors used in the current PGDB. 
-      Arguments
+      Parms
           None. 
       Side-Effects
           None. 
@@ -834,7 +720,7 @@ class PGDB():
       Description
           Enumerate all of the modulators, or direct regulators, in the
           current PGDB. 
-      Arguments
+      Parms
           None. 
       Side-Effects
           None. 
@@ -848,7 +734,7 @@ class PGDB():
       """
       Description
           Enumerate all RNA polymerase sigma factors. 
-      Arguments
+      Parms
           None. 
       Side-Effects
           None. 
@@ -862,7 +748,7 @@ class PGDB():
       Description
           Enumerates all operons. In this case, an operon is defined as a
           list of overlapping instances of Transcription-Units. 
-      Arguments
+      Parms
           None. 
       Side-Effects
           None. 
@@ -876,7 +762,7 @@ class PGDB():
       """
       Description
           Enumerate all transport proteins. 
-      Arguments
+      Parms
           None. 
       Side-Effects
           None. 
@@ -890,7 +776,7 @@ class PGDB():
       Description
           Enumerates all chemicals transported by transport reactions in
           the current PGDB. 
-      Arguments
+      Parms
   
           from_compartment
               Keyword, The compartment that the chemical is
@@ -916,7 +802,7 @@ class PGDB():
        """
        Description
            Enumerates different types of protein complexes. 
-       Arguments
+       Parms
    
            filter
                Keyword, The type of protein complexes to return. The
@@ -942,7 +828,7 @@ class PGDB():
      Description
          Enumerates all transcription factors, or just unmodified forms
          of transcription factors. 
-     Arguments
+     Parms
          allow_modified_forms
              Keyword, A boolean value. If True, modified and
              unmodified forms of the protein are returned. If false, then
@@ -961,7 +847,7 @@ class PGDB():
           Enumerates all proteins that are involved in genetic regulation
           of a particular given class. Optionally, just unmodified forms
           of the proteins are returned. 
-      Arguments
+      Parms
   
           class_name
               Keyword, The class Regulation or a subclass.
@@ -988,7 +874,7 @@ class PGDB():
       Description
           Enumerate all reactions that have isozymes (distinct proteins or
           protein classes that catalyze the same reaction). 
-      Arguments
+      Parms
   
           rxns
               Keyword, A list of instances of the class
@@ -1008,7 +894,7 @@ class PGDB():
       Description
           Enumerates all reactions catalyzed by an enzyme that is a
           protein complex. 
-      Arguments
+      Parms
    
            rxns
                Keyword, A list of instances of the class
@@ -1027,7 +913,7 @@ class PGDB():
       """
       Description
           Return all enzymes of a given type. 
-      Arguments
+      Parms
    
           type
               Keyword, A type as taken from the argument to
@@ -1048,7 +934,7 @@ class PGDB():
        """
        Description
            Return all genes that encode the enzymes of a given reaction. 
-       Arguments
+       Parms
    
            rxn
                An instance of the class Reactions, a frame id or PFrame. 
@@ -1064,7 +950,7 @@ class PGDB():
        """
        Description
            Return all of the reactants and products of a given reaction. 
-       Arguments
+       Parms
    
            rxn
                An instance of the class Reactions, a frame id or PFrame. 
@@ -1081,7 +967,7 @@ class PGDB():
        """
        Description
            Return the enzymes that catalyze a given reaction. 
-       Arguments
+       Parms
    
            rxn
                An instance of the class Reactions, a frame id or PFrame.  
@@ -1122,7 +1008,7 @@ class PGDB():
           explicit direction or a pathway is given as an argument, then
           the direction is computationally inferred from available
           evidence within the PGDB. 
-      Arguments
+      Parms
   
           rxn
               An instance of the class Reactions, that is,  a frame id or PFrame. 
@@ -1157,7 +1043,7 @@ class PGDB():
       """
       Description
           Returns a keyword describing the type of reaction. 
-      Arguments
+      Parms
   
           rxn
               An instance of the class Reactions, a frame id or PFrame.
@@ -1191,7 +1077,7 @@ class PGDB():
       Description
           A predicate that tests if a given reaction has genes with no
           associated sequence information. 
-      Arguments
+      Parms
   
           rxn
               An instance of the class Reactions, that is, a frame id or PFrame. 
@@ -1213,7 +1099,7 @@ class PGDB():
       Description
           A predicate that determines if the current reaction is
           considered to be a 'pathway hole', or without an associated enzyme. 
-      Arguments
+      Parms
   
           rxn
               An instance of the class Reactions, a frame id or PFrame. 
@@ -1235,7 +1121,7 @@ class PGDB():
       Description
           A predicate that determines if there is evidence for the
           occurrence of the given reaction in the current PGDB. 
-      Arguments
+      Parms
   
           rxn
               An instance of the class Reactions, that is, a frame id or PFrame. 
@@ -1252,7 +1138,7 @@ class PGDB():
       Description
           A predicate that is True if the given generic reaction is a
           generalized form of the given specific reaction. 
-      Arguments
+      Parms
   
           specific_rxn
               A child of the class Reactions, that is, a frame id or PFrame. 
@@ -1271,7 +1157,7 @@ class PGDB():
       Description
           Return all of the generic forms of the given specific reaction.
           Not every reaction will necessarily have a generic form. 
-      Arguments
+      Parms
   
           rxn
               An instance of the class Reactions, that is, a frame id or PFrame. 
@@ -1288,7 +1174,7 @@ class PGDB():
       Description
           Return all of the specific forms of the given generic reaction.
           Not every reaction will necessarily have a specific form. 
-      Arguments
+      Parms
   
           rxn
               A child of the class Reactions, that is, a frame id or PFrame. 
@@ -1305,7 +1191,7 @@ class PGDB():
       Description
           A predicate that checks if the given reaction is present in a
           list of cellular compartments. 
-      Arguments
+      Parms
   
           rxn
               An instance of the class Reactions, a frame id or PFrame. 
@@ -1340,7 +1226,7 @@ class PGDB():
       Description
           Returns the compartment of the reaction for non-transport
           reactions. 
-      Arguments
+      Parms
   
           rxn
               An instance of the class Reactions, that is, a frame id or PFrame.  
@@ -1360,7 +1246,7 @@ class PGDB():
       """
       Description
           Returns the compartments associated with the given reaction. 
-      Arguments
+      Parms
   
           rxn
               An instance of the class Reactions, a frame id or PFrame.  
@@ -1387,7 +1273,7 @@ class PGDB():
       Description
           Return the compounds in a transport reaction that change
           compartments. 
-      Arguments
+      Parms
   
           rxn
               An instance of the class Reactions, a frame id or PFrame.  
@@ -1431,7 +1317,7 @@ class PGDB():
           Return a list of all reactions that are direct predecessors
           (i.e., occurr earlier in the pathway) of the given reaction in
           the given pathway. 
-      Arguments
+      Parms
   
           rxn
               An instance of the class Reactions, a frame id or PFrame. 
@@ -1451,7 +1337,7 @@ class PGDB():
           Return a list of all reactions that are direct successors (i.e.,
           occurr later in the pathway) of the given reaction in the given
           pathway. 
-      Arguments
+      Parms
   
           rxn
               An instance of the class Reactions, a frame id or PFrame.  
@@ -1471,7 +1357,7 @@ class PGDB():
           A predicate that tests if a given reaction has any associated
           isozymes (distinct proteins or protein classes that catalyze the
           same reaction). 
-      Arguments
+      Parms
   
           rxn
               An instance of the class Reactions, a frame id or PFrame.  
@@ -1489,7 +1375,7 @@ class PGDB():
       """
       Description
           Return all genes coding for enzymes in the given pathway. 
-      Arguments
+      Parms
   
           pwy
               An instance of the class Pathways, a frame id or PFrame.  
@@ -1510,7 +1396,7 @@ class PGDB():
       """
       Description
           Return all enzymes that are present in the given pathway. 
-      Arguments
+      Parms
   
           pwy
               An instance of the class Pathways, a frame id or PFrame.  
@@ -1543,7 +1429,7 @@ class PGDB():
       Description
           Return all substrates of all reactions that are within the given
           pathway. 
-      Arguments
+      Parms
   
           pwy
               An instance of the class Pathways, a frame id or PFrame.  
@@ -1566,7 +1452,7 @@ class PGDB():
           of proper reactants (the subset of reactants that are not also
           products), a list of all products, and a list of all proper
           products. 
-      Arguments
+      Parms
   
           pwy
               An instance of the class Pathways, a frame id or PFrame.  
@@ -1584,7 +1470,7 @@ class PGDB():
       """
       Description
           Returns all variants of a pathway. 
-      Arguments
+      Parms
   
           pwy
               An instance of the class Pathways, a frame id or PFrame.  
@@ -1608,7 +1494,7 @@ class PGDB():
           N connected components, where N is the number of reactions in
           the pathway. Most pathways have one connected component, but not
           all. 
-      Arguments
+      Parms
   
           pwy, a frame id or PFrame. 
               An instance of the class Pathways, which is not a
@@ -1642,7 +1528,7 @@ class PGDB():
           A predicate that determines if the pathway contains more than
           one connected component. See function pathway-components for
           more explanation. 
-      Arguments
+      Parms
   
           pwy
               An instance of the class Pathways, a frame id or PFrame.  
@@ -1659,7 +1545,7 @@ class PGDB():
       Description
           A predicate to determine if two given reactions are adjacent to
           one another in the given pathway. 
-      Arguments
+      Parms
   
           rxn1
               An instance of the class Reactions, a frame id or PFrame.  
@@ -1682,7 +1568,7 @@ class PGDB():
       Description
           Returns the cofactors and prosthetic groups of an enzymatic
           reaction. 
-      Arguments
+      Parms
   
           enzrxn
               An instance of the class Enzymatic-Reactions, a frame id or PFrame.  
@@ -1700,7 +1586,7 @@ class PGDB():
       Description
           Returns the list of activators (generally small molecules) of
           the enzymatic reaction frame. 
-      Arguments
+      Parms
   
           er
               An instance of the class Enzymatic-Reactions, a frame id or PFrame.  
@@ -1722,7 +1608,7 @@ class PGDB():
       Description
           Returns the list of inhibitors (generally small molecules) of
           the enzymatic reaction frame. 
-      Arguments
+      Parms
   
           er
               An instance of the class Enzymatic-Reactions, a frame id or PFrame.  
@@ -1744,7 +1630,7 @@ class PGDB():
       Description
           Returns the list of pathways in which the given enzymatic
           reaction participates. 
-      Arguments
+      Parms
   
           enzrxn
               An instance of the class Enzymatic-Reactions, a frame id or PFrame.  
@@ -1772,7 +1658,7 @@ class PGDB():
           reaction. Certain pathways have a list of enzymatic reactions
           that are known not to catalyze certain reactions. See the
           documentation of slot-unit enzyme-use for more information. 
-      Arguments
+      Parms
   
           pwy
               An instance of the class Pathways, a frame id or PFrame.  
@@ -1802,7 +1688,7 @@ class PGDB():
       """
       Description
           Returns the monomers of the given protein complex. 
-      Arguments
+      Parms
   
           p
               An instance of the class Proteins, a frame id or PFrame.  
@@ -1831,7 +1717,7 @@ class PGDB():
           Same as function monomers-of-protein, but also returns
           components of the protein that are RNAs or compounds, not just
           polypeptides. 
-      Arguments
+      Parms
   
           p
               An instance of the class Proteins, a frame id or PFrame.  
@@ -1855,7 +1741,7 @@ class PGDB():
       Description
           Return all complexes of which the given protein is a direct or
           indirect component. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.  
@@ -1878,7 +1764,7 @@ class PGDB():
           except that it only includes containers that are instances of
           either class Protein-Complexes, or class
           Protein-RNA-Complexes. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.  
@@ -1899,7 +1785,7 @@ class PGDB():
       Description
           This function is the same as the function containers-of,
           except that it only includes containers that are homomultimers. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.  
@@ -1920,7 +1806,7 @@ class PGDB():
       Description
           A predicate that determines if the given protein is a
           polypeptide or a homomultimer. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.  
@@ -1937,7 +1823,7 @@ class PGDB():
       Description
           Return the unmodified form of the given protein, which might be
           the same as the given protein. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.  
@@ -1954,7 +1840,7 @@ class PGDB():
       Description
           Return the unmodified form or unbound (to a small molecule) form
           of the given protein, which might be the same as the given protein. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.  
@@ -1972,7 +1858,7 @@ class PGDB():
           Given a list of proteins, the function converts all of the
           proteins to their unmodified form, and then removes any
           duplicates from the subsequent list. 
-      Arguments
+      Parms
   
           prots
               A list of instances of the class Proteins, a frame id or PFrame.  
@@ -1995,7 +1881,7 @@ class PGDB():
           Given a protein, this function will return all of the directly
           related proteins of its modified and unmodified forms, meaning
           all of their direct subunits and all of their direct containers. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.  
@@ -2015,7 +1901,7 @@ class PGDB():
           their subunits and all of their containers. Unlike
           all_direct_forms_of_protein, this function is not limited to
           the direct containers only. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.  
@@ -2031,7 +1917,7 @@ class PGDB():
       """
       Description
           Returns all modified forms of a protein. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.  
@@ -2056,7 +1942,7 @@ class PGDB():
       Description
           Returns all of the modified and unmodified forms of the given
           protein. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.  
@@ -2073,7 +1959,7 @@ class PGDB():
       Description
           Returns all containers of a protein (including itself), and all
           modified forms of the containers. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.  
@@ -2090,7 +1976,7 @@ class PGDB():
       Description
           Return the top-most containers (i.e., they are not a component
           of any other protein complex) of the given protein. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.  
@@ -2107,7 +1993,7 @@ class PGDB():
       Description
           Return all of the forms of the given protein that are complexes
           with small molecules. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.  
@@ -2124,7 +2010,7 @@ class PGDB():
       Description
           Given a protein, return the set of genes which encode all of the
           monomers of the protein. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.  
@@ -2141,7 +2027,7 @@ class PGDB():
       Description
           The same as genes_of_protein, except that it takes a list of
           proteins and returns a set of genes. 
-      Arguments
+      Parms
   
           protein
               A list of instances of the class Proteins, a frame id or PFrame.  
@@ -2158,7 +2044,7 @@ class PGDB():
       Description
           Return all of the reactions associated with a given protein via
           enzymatic reactions. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.  
@@ -2181,7 +2067,7 @@ class PGDB():
       """
       Description
           Get the associated species for the given protein. 
-      Arguments
+      Parms
   
           protein
               A list of instances of the class Proteins, a frame id or PFrame.  
@@ -2198,7 +2084,7 @@ class PGDB():
       Description
           Predicate that determines whether a specified protein is an
           enzyme or not. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.  
@@ -2234,7 +2120,7 @@ class PGDB():
       Description
           A predicate that determines whether the given protein is a
           leader peptide. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.  
@@ -2250,7 +2136,7 @@ class PGDB():
       """
       Description
           A predicate that determines whether the given frame is a protein. 
-      Arguments
+      Parms
   
           frame
               a frame id or PFrame.  
@@ -2267,7 +2153,7 @@ class PGDB():
       Description
           A predicate that determines whether the given frame is a
           protein complex. 
-      Arguments
+      Parms
   
           frame
               a frame id or PFrame.  
@@ -2285,7 +2171,7 @@ class PGDB():
       Description
           Returns all of the associated reactions that the given protein,
           or its components, catalyzes. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.  
@@ -2309,7 +2195,7 @@ class PGDB():
       Description
           A predicate that checks if the given reaction is present in a
           list of cellular compartments. 
-      Arguments
+      Parms
   
           rxn
               An instance of the class Reactions, a frame id or PFrame.  
@@ -2343,7 +2229,7 @@ class PGDB():
       Description
           Returns a list of transport proteins that transport across one
           of the given membranes. 
-      Arguments
+      Parms
   
           membranes
               Keyword, Either all or a list of instances of the class.
@@ -2371,7 +2257,7 @@ class PGDB():
           has no associated Enzymatic Reaction frame. This implies that
           the protein substrate of the reaction might autocatalyzing the
           reaction. 
-      Arguments
+      Parms
   
           protein
               An instance frame of class Proteins, a frame id or PFrame.  
@@ -2390,7 +2276,7 @@ class PGDB():
       """
       Description
           A predicate to determine if the given frame is a gene. 
-      Arguments
+      Parms
   
           item
               a frame id or PFrame.  
@@ -2407,7 +2293,7 @@ class PGDB():
       Description
           Collects all of the enzymes encoded by the given gene, including
           modified forms and complexes in which it is a sub-component. 
-      Arguments
+      Parms
   
           gene
               An instance of class Genes, a frame id or PFrame.  
@@ -2424,7 +2310,7 @@ class PGDB():
       Description
           Collects all proteins (not necessarily enzymes) that are encoded
           by the given gene. 
-      Arguments
+      Parms
   
           gene
               An instance of class Genes, a frame id or PFrame.  
@@ -2441,7 +2327,7 @@ class PGDB():
       Description
           Returns all reactions catalyzed by enzymes encoded by the given
           gene. 
-      Arguments
+      Parms
   
           gene
               An instance of class Genes, a frame id or PFrame.  
@@ -2457,7 +2343,7 @@ class PGDB():
       """
       Description
           Returns the pathways of enzymes encoded by the given gene. 
-      Arguments
+      Parms
   
           gene
               An instance of class Genes, a frame id or PFrame.  
@@ -2483,7 +2369,7 @@ class PGDB():
           Returns the replicon on which the gene is located. If the gene
           is located on a contig that is, in turn, part of a chromosome,
           then the contig is returned. 
-      Arguments
+      Parms
   
           gene
               An instance of class Genes, a frame id or PFrame.  
@@ -2501,7 +2387,7 @@ class PGDB():
           Returns the first element of the list returned by the function
           unmodified-gene-products. This is useful if you are sure that
           there are no alternative splice forms of your gene. 
-      Arguments
+      Parms
   
           gene
               An instance of class Genes, a frame id or PFrame.  
@@ -2518,7 +2404,7 @@ class PGDB():
       Description
           Return all of the unmodified gene products (i.e. alternative
           splice forms) of the given gene. 
-      Arguments
+      Parms
   
           gene
               An instance of class Genes, a frame id or PFrame.  
@@ -2534,7 +2420,7 @@ class PGDB():
       """
       Description
           Return the next gene on the replicon. 
-      Arguments
+      Parms
   
           gene
               An instance of class Genes, a frame id or PFrame.  
@@ -2553,7 +2439,7 @@ class PGDB():
       """
       Description
           Return the previous gene on the replicon. 
-      Arguments
+      Parms
   
           gene
               An instance of class Genes, a frame id or PFrame. 
@@ -2573,7 +2459,7 @@ class PGDB():
       Description
           Given two genes, this predicate will return True if they are on
           the same replicon, and adjacent to one another. 
-      Arguments
+      Parms
   
           g1
               An instance of class Genes, a frame id or PFrame.  
@@ -2593,7 +2479,7 @@ class PGDB():
           Given two genes, this predicate determines if the two genes are
           "neighbors", or within a certain number of genes from one
           another along the replicon. 
-      Arguments
+      Parms
   
           g1
               An instance of class Genes, a frame id or PFrame.  
@@ -2615,7 +2501,7 @@ class PGDB():
       Description
           Groups together genes based on whether each gene is a gene
           neighbor with other genes. 
-      Arguments
+      Parms
   
           genes
               A list of instances of class Genes, a frame id or PFrame.  
@@ -2636,7 +2522,7 @@ class PGDB():
       """
       Description
           A predicate that determines if the given gene encodes an RNA. 
-      Arguments
+      Parms
   
           gene
               An instance of the class Genes, a frame id or PFrame.  
@@ -2653,7 +2539,7 @@ class PGDB():
       Description
           A predicate that determines if the given gene encodes a protein
           (as opposed to an RNA). 
-      Arguments
+      Parms
   
           gene
               An instance of the class Genes, a frame id or PFrame.  
@@ -2669,7 +2555,7 @@ class PGDB():
       """
       Description
           A predicate that determines if the given gene is a pseudo-gene. 
-      Arguments
+      Parms
   
           gene
               An instance of the class Genes, a frame id or PFrame.  
@@ -2685,7 +2571,7 @@ class PGDB():
       """
       Description
           A predicate that determines if the given gene is a phantom gene. 
-      Arguments
+      Parms
   
           gene
               An instance of the class Genes, a frame id or PFrame.  
@@ -2702,7 +2588,7 @@ class PGDB():
       Description
           A predicate that determines if the given frame is an instance of
           the class DNA-Binding-Sites. 
-      Arguments
+      Parms
   
           gene
               A frame id or PFrame.  
@@ -2719,7 +2605,7 @@ class PGDB():
       Description
           A predicate that determines if the given object is an instance
           of the class Terminators. 
-      Arguments
+      Parms
   
           gene
               A frame id or PFrame.  
@@ -2736,7 +2622,7 @@ class PGDB():
       Description
           Given a gene, return a list of transcription units that form the
           operon containing the gene. 
-      Arguments
+      Parms
   
           gene
               An instance of class Genes, a frame id or PFrame  
@@ -2753,7 +2639,7 @@ class PGDB():
       """
       Description
           Given a gene, return all other genes in the same operon. 
-      Arguments
+      Parms
   
           gene
               An instance of class Genes, a frame id or PFrame. 
@@ -2770,7 +2656,7 @@ class PGDB():
       Description
           Given a gene, return all of the transcription units which
           contain the gene. 
-      Arguments
+      Parms
   
           gene
               An instance of class Genes, a frame id or PFrame
@@ -2787,7 +2673,7 @@ class PGDB():
       Description
           Return all co-transcribed genes (i.e., genes which are a part of
           one or more of the same transcription units) of the given gene. 
-      Arguments
+      Parms
   
           gene
               An instance of class Genes, a frame id or PFrame 
@@ -2804,7 +2690,7 @@ class PGDB():
       Description
           Find terminators in the same transcription unit and upstream of
           the given gene. 
-      Arguments
+      Parms
   
           gene
               An instance of class Genes, a frame id or PFrame 
@@ -2823,7 +2709,7 @@ class PGDB():
           If there is no associated replicon for the object, nil is
           returned. If the object is on more than one replicon, an error
           is thrown. 
-      Arguments
+      Parms
   
           item, a frame id or PFrame
               An instance of class All-Genes, Transcription-Units,
@@ -2846,7 +2732,7 @@ class PGDB():
       Description
           A predicate that determines if a given regulation frame is
           describing activation. 
-      Arguments
+      Parms
   
           reg_frame
               An instance of class Regulation, a frame id or PFrame 
@@ -2862,7 +2748,7 @@ class PGDB():
       Description
           A predicate that determines if a given regulation frame is
           describing inhibition. 
-      Arguments
+      Parms
   
           reg_frame
               An instance of class Regulation, a frame id or PFrame 
@@ -2879,7 +2765,7 @@ class PGDB():
       Description
           Return all regulators that are connected to a regulated object
           by a single regulation object. 
-      Arguments
+      Parms
   
           item
               A frame id or PFrame. 
@@ -2900,7 +2786,7 @@ class PGDB():
       Description
           Return all activators that are connected to an activated object
           by a single regulation object. 
-      Arguments
+      Parms
   
           item
               A frame id or PFrame.
@@ -2917,7 +2803,7 @@ class PGDB():
       Description
           Return all inhibitors that are connected to an inhibited object
           by a single regulation object. 
-      Arguments
+      Parms
   
           item
               A frame id or PFrame.
@@ -2934,7 +2820,7 @@ class PGDB():
       Description
           A predicate that determines if the given protein is a
           transcription factor, or a component of a transcription factor. 
-      Arguments
+      Parms
   
           protein
               An instance frame of class Proteins, a frame id or PFrame. 
@@ -2956,7 +2842,7 @@ class PGDB():
       Description
           A predicate that determines if the given protein is a regulator
           of the specified class. 
-      Arguments
+      Parms
   
           protein
               An instance frame of class Proteins, a frame id or PFrame.  
@@ -2975,7 +2861,7 @@ class PGDB():
       Description
           Returns all transcription units regulated by any form of the
           given protein. 
-      Arguments
+      Parms
   
           protein
               An instance frame of class Proteins, a frame id or PFrame.   
@@ -2993,7 +2879,7 @@ class PGDB():
           Given a regulation object, return the transcription units when
           one of the regulated entities is a promoter or terminator of the
           transcription unit. 
-      Arguments
+      Parms
   
           reg_frame
               An instance of the class Regulation-of-Transcription, a frame id or PFrame.   
@@ -3010,7 +2896,7 @@ class PGDB():
       Description
           Returns a list of regulation frames that regulate the
           transcription unit. 
-      Arguments
+      Parms
   
           tu
               An instance of the class Transcription-Units, a frame id or PFrame.   
@@ -3027,7 +2913,7 @@ class PGDB():
       Description
           Returns a list of regulation frames that activate the
           transcription unit. 
-      Arguments
+      Parms
   
           tu
               An instance of the class Transcription-Units, a frame id or PFrame.   
@@ -3044,7 +2930,7 @@ class PGDB():
       Description
           Returns a list of regulation frames that inhibit the
           transcription unit. 
-      Arguments
+      Parms
   
           tu
               An instance of the class Transcription-Units, a frame id or PFrame.   
@@ -3061,7 +2947,7 @@ class PGDB():
       Description
           Return all of the transcription units for which the given
           protein, or its modified form, acts as a regulator. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.   
@@ -3078,7 +2964,7 @@ class PGDB():
       Description
           Return all of the genes for which the given protein, or its
           modified form, acts as a regulator. 
-      Arguments
+      Parms
   
           protein
               An instance of the class Proteins, a frame id or PFrame.   
@@ -3094,7 +2980,7 @@ class PGDB():
       """
       Description
           Given a transcription factor, return all of its DNA binding sites. 
-      Arguments
+      Parms
   
           tf
               An instance of the class Proteins, a frame id or PFrame.   
@@ -3115,7 +3001,7 @@ class PGDB():
       Description
           Returns all transcription factors that regulate the given
           transcription unit. 
-      Arguments
+      Parms
   
           tu
               An instance of the class Transcription-Units, a frame id or PFrame.   
@@ -3132,7 +3018,7 @@ class PGDB():
       Description
           For a single transcription factor or list of transcription
           factors, return all transcription factor ligands. 
-      Arguments
+      Parms
   
           tfs, a frame id or PFrame or a list of these. 
               An instance or a list of instances of the class
@@ -3154,7 +3040,7 @@ class PGDB():
       Description
           For a given transcription factor, find all active forms (i.e,
           form of the protein that regulates) of the transcription factor. 
-      Arguments
+      Parms
   
           tfs, a frame id or PFrame.  
               An instance of the class Proteins. 
@@ -3171,7 +3057,7 @@ class PGDB():
       Description
           Return all genes regulating the given gene by means of a
           transcription factor. 
-      Arguments
+      Parms
   
           gene
               An instance of the class Genes, a frame id or PFrame.   
@@ -3188,7 +3074,7 @@ class PGDB():
       Description
           Return all genes regulated by the given gene by means of a
           transcription factor. 
-      Arguments
+      Parms
   
           gene
               An instance of the class Genes, a frame id or PFrame.   
@@ -3204,7 +3090,7 @@ class PGDB():
       """
       Description
           Returns a list of proteins that are regulators of the given gene. 
-      Arguments
+      Parms
   
           gene
               An instance of the class Genes, a frame id or PFrame.   
@@ -3227,7 +3113,7 @@ class PGDB():
       """
       Description
           Returns all activator proteins of the given transcription unit. 
-      Arguments
+      Parms
   
           tu
               An instance of the class Transcription-Units, a frame id or PFrame.   
@@ -3243,7 +3129,7 @@ class PGDB():
       """
       Description
           Returns all inhibitor proteins of the given transcription unit. 
-      Arguments
+      Parms
   
           tu
               An instance of the class Transcription-Units, a frame id or PFrame.   
@@ -3259,7 +3145,7 @@ class PGDB():
       """
       Description
           Returns a list of transcription factors of an operon. 
-      Arguments
+      Parms
   
           operon_list
               A list of instances of the class Transcription-Units, a frame id or PFrame.   
@@ -3281,7 +3167,7 @@ class PGDB():
       """
       Description
           Returns the promoter of the given transcription unit. 
-      Arguments
+      Parms
   
           tu
               An instance of the class Transcription-Units, a frame id or PFrame.   
@@ -3297,7 +3183,7 @@ class PGDB():
       """
       Description
           Returns the genes of the given transcription unit. 
-      Arguments
+      Parms
   
           tu
               An instance of the class Transcription-Units, a frame id or PFrame.   
@@ -3313,7 +3199,7 @@ class PGDB():
       """
       Description
           Returns the first gene of the given transcription unit. 
-      Arguments
+      Parms
   
           tu
               An instance of the class Transcription-Units, a frame id or PFrame.   
@@ -3329,7 +3215,7 @@ class PGDB():
       """
       Description
           Returns the binding sites of the given transcription unit. 
-      Arguments
+      Parms
   
           tu
               An instance of the class Transcription-Units, a frame id or PFrame.   
@@ -3345,7 +3231,7 @@ class PGDB():
       """
       Description
           Returns the binding sites of the given transcription unit. 
-      Arguments
+      Parms
   
           tu
               An instance of the class Transcription-Units, a frame id or PFrame.   
@@ -3361,7 +3247,7 @@ class PGDB():
       """
       Description
           Returns the mRNA binding sites of the given transcription unit. 
-      Arguments
+      Parms
   
           tu
               An instance of the class Transcription-Units, a frame id or PFrame.   
@@ -3377,7 +3263,7 @@ class PGDB():
       """
       Description
           Returns the replicon of the given transcription unit. 
-      Arguments
+      Parms
   
           tu
               An instance of the class Transcription-Units, a frame id or PFrame.   
@@ -3394,7 +3280,7 @@ class PGDB():
       Description
           Returns all binding sites which are present in the same
           transcription units as the given gene. 
-      Arguments
+      Parms
   
           gene
               An instance of the class Genes, a frame id or PFrame.   
@@ -3410,7 +3296,7 @@ class PGDB():
       """
       Description
           Returns all of the transcription factors of the given binding site. 
-      Arguments
+      Parms
   
           bsite
               An instance of class DNA-Binding-Sites, a frame id or PFrame.   
@@ -3426,7 +3312,7 @@ class PGDB():
       """
       Description
           Returns all transcription units of a given promoter. 
-      Arguments
+      Parms
   
           promoter
               An instance of class Promoters, a frame id or PFrame.   
@@ -3443,7 +3329,7 @@ class PGDB():
       Description
           Returns all of the binding sites associated with the given
           promoter, across multiple transcription units. 
-      Arguments
+      Parms
   
           promoter
               An instance of class Promoters, a frame id or PFrame.   
@@ -3459,7 +3345,7 @@ class PGDB():
       """
       Description
           Returns the terminators of the given transcription unit. 
-      Arguments
+      Parms
   
           operon
               An instance of the class Transcription-Units, a frame id or PFrame.   
@@ -3477,7 +3363,7 @@ class PGDB():
           Given a site (whether a DNA binding site, a promoter, a gene, or
           a terminator) along a transcription unit, return the
           correspodning transcription units. 
-      Arguments
+      Parms
   
           site, a frame id or PFrame.  
               An instance of class Transcription-Units,
@@ -3497,7 +3383,7 @@ class PGDB():
           Given a site (whether a DNA binding site, a promoter, a gene, or
           a terminator) along a transcription unit, return the
           correspodning regulon. 
-      Arguments
+      Parms
   
           site, a frame id or PFrame.  
               An instance of class Transcription-Units,
@@ -3515,7 +3401,7 @@ class PGDB():
       """
       Description
           Returns the promoters of the given DNA binding site. 
-      Arguments
+      Parms
   
           tu
               An instance of the class DNA-Binding-Sites, a frame id or PFrame.   
@@ -3532,7 +3418,7 @@ class PGDB():
       Description
           Returns all components (binding sites, promoters, genes,
           terminators) of the given transcription unit. 
-      Arguments
+      Parms
   
           tu
               An instance of the class Transcription-Units, a frame id or PFrame.   
@@ -3550,7 +3436,7 @@ class PGDB():
       """
       Description
           Returns all transcription units of a given binding site. 
-      Arguments
+      Parms
   
           promoter, a frame id or PFrame.  
               An instance of class DNA-Binding-Sites or
@@ -3572,7 +3458,7 @@ class PGDB():
       Description
           Return all reactions in which the given compound participates as
           a substrate. 
-      Arguments
+      Parms
   
           cpd, a frame id or PFrame.  
               A child of class Compounds. 
@@ -3606,7 +3492,7 @@ class PGDB():
       Description
           A predicate that determines if a parent of the given compound is
           a substrate of the given generic reaction. 
-      Arguments
+      Parms
   
           cpd
               An instance of class Compounds, a frame id or PFrame.   
@@ -3625,7 +3511,7 @@ class PGDB():
       Description
           Returns all pathways in which the given compound appears as a
           substrate. 
-      Arguments
+      Parms
   
           cpd
               An instance of class Compounds, a frame id or PFrame.   
@@ -3663,7 +3549,7 @@ class PGDB():
       Description
           Returns all pathways in which the given compound appears as a
           substrate. 
-      Arguments
+      Parms
   
           cpds
               An instance or list of instances of class Compounds, a frame id or PFrame.   
@@ -3698,7 +3584,7 @@ class PGDB():
       Description
           Returns a list of protein complexes that, when bound to the
           given compound, act as a transcription factor. 
-      Arguments
+      Parms
   
           cpd
               An instance of class Compounds, a frame id or PFrame.   
@@ -3727,7 +3613,7 @@ class PGDB():
       Description
           Given an object, compute the string name. The method used to
           compute the name varies per the object class. 
-      Arguments
+      Parms
   
           item
               A frame id or PFrame.   
@@ -3792,7 +3678,7 @@ class PGDB():
           enzymatic reactions. Note that two enzrxns for the same enzyme
           could have the same common name, so we avoid including the same
           name twice. 
-      Arguments
+      Parms
   
           enzyme
               An instance of the class Proteins, that is, a frame id or a PFrame.   
@@ -3822,7 +3708,8 @@ class PGDB():
           Computes the name of an enzyme in the context of a particular
           reaction. If the reaction is not provided, then we return the
           full enzyme name. 
-      Arguments
+
+      Parms
   
           enzyme
               An instance of the class Proteins, that is, a frame id or a PFrame.   
@@ -3830,7 +3717,8 @@ class PGDB():
               Keyword, An instance of the class Reactions. 
   
       Side-Effects
-          None. 
+          None.
+          
       Return value
           A string. 
       """

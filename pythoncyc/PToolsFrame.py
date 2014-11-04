@@ -1,28 +1,28 @@
+# Copyright (c) 2014, SRI International
+# 
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+# 
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# ----------------------------------------------------------------------
+
 """
-Copyright (c) 2014, SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-----------------------------------------------------------------------
-
-See class PFrame below for most of the documentation about this module.
-
+    Please consult file tutorial.html under the doc directory
+    for an introduction on how to use this class.
 """
 
 import sys
@@ -50,9 +50,6 @@ class Symbol():
 
 class PFrame():
     """
-    Note: This is a documentation summary. For a more complete documentation, 
-    please consult the web page at http://brg.ai.sri.com/ptools/pythoncyc.html.
-
     PFrame is a class to represent Pathway Tools' frames. A PFrame can
     represent a class frame (e.g., Reactions) as well as an instance frame
     (e.g., RXN-9000). 
@@ -66,37 +63,16 @@ class PFrame():
     By default, an instance PFrame (not a class PFrame) is created.
     To create a PGDB object, use class PGDB, or call method pythoncyc.so.
 
-    By default, the data of the frame is not requested from the server, that is,
-    a PFrame object is created containing only the frame id and the PGDB.
-    All its slots and data can be fetched from Pathway Tools by
-    specifying the keyword argument getFrameData=True. For example, the following
-    create a frame for reaction RXN-9000 and retrieve all its slots and data,
-
-        PFrame('RXN-9000', meta, getFrameData=True)
-
-    For creating a class, the isClass keyword parameter must say so,
-
-        PFrame('Reactions', meta, isClass=True)
-
-    When creating a class, if getFrameData=True is specified, the class slots and its
-    data are fetched and all the instances of the class are also created.
-
-    In all cases, accessing one slot of a PFrame object will bring in all slots data
-    for that PFrame, if the data for that PFrame has not been retrieved.
-    For example, for a reaction, the slots left, right, substrates, and so on,
-    are populated if one of the slots of its PFrame object is accessed.
-
-    The attribute values of the PFrames cannot be modified, that is, slots are read only.
-    On the other hand, slots of Pathway Tools' objects can be modified using methods
-    put_slot_value and put_slot_values. See class PGDB for these methods.
-
     IPython
     -------
     
     A few methods were written to display frames using HTML in IPython.
     Naturally, this functionality is only defined when using IPython as a
     Python interpreter.
-    
+
+    Please consult file tutorial.html under the doc directory for an introduction
+    on how to use this class.
+
     """
 
     def __init__(self, frameid, pgdb, getFrameData=False, isClass = False):
