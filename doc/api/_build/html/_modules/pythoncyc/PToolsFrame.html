@@ -48,16 +48,36 @@
           <div class="body">
             
   <h1>Source code for pythoncyc.PToolsFrame</h1><div class="highlight"><pre>
+<span class="c"># Copyright (c) 2014, SRI International</span>
+<span class="c"># </span>
+<span class="c"># Permission is hereby granted, free of charge, to any person obtaining</span>
+<span class="c"># a copy of this software and associated documentation files (the</span>
+<span class="c"># &quot;Software&quot;), to deal in the Software without restriction, including</span>
+<span class="c"># without limitation the rights to use, copy, modify, merge, publish,</span>
+<span class="c"># distribute, sublicense, and/or sell copies of the Software, and to</span>
+<span class="c"># permit persons to whom the Software is furnished to do so, subject to</span>
+<span class="c"># the following conditions:</span>
+<span class="c"># </span>
+<span class="c"># The above copyright notice and this permission notice shall be</span>
+<span class="c"># included in all copies or substantial portions of the Software.</span>
+<span class="c"># </span>
+<span class="c"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,</span>
+<span class="c"># EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF</span>
+<span class="c"># MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND</span>
+<span class="c"># NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE</span>
+<span class="c"># LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION</span>
+<span class="c"># OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION</span>
+<span class="c"># WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</span>
+<span class="c"># ----------------------------------------------------------------------</span>
+
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Mario Latendresse, June 2014.</span>
-
-<span class="sd">See class PFrame below for most of the documentation about this module.</span>
-
+<span class="sd">    Please consult the the tutorial.html file under the doc directory</span>
+<span class="sd">    for an introduction on how to use this class.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">config</span>
 <span class="kn">from</span> <span class="nn">PTools</span> <span class="kn">import</span> <span class="n">PToolsError</span><span class="p">,</span> <span class="n">PythonCycError</span>
-<span class="kn">import</span> <span class="nn">pythoncyc.config</span> <span class="kn">as</span> <span class="nn">config</span>
 <span class="k">if</span> <span class="s">&#39;IPython&#39;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">display</span><span class="p">,</span> <span class="n">HTML</span>
 
@@ -66,12 +86,20 @@
 <span class="sd">     Convert string s such that it can be a valid Python identifier.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">,</span><span class="s">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">,</span><span class="s">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;?&#39;</span><span class="p">,</span><span class="s">&#39;_p&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;|&#39;</span><span class="p">,</span><span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-
+</div>
+<div class="viewcode-block" id="Symbol"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.PToolsFrame.Symbol">[docs]</a><span class="k">class</span> <span class="nc">Symbol</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class can be used to represent Lisp symbols in PythonCyc.</span>
+<span class="sd">    For example, Symbol(&#39;trp&#39;) represents the symbol trp. It is mainly used</span>
+<span class="sd">    to ensure that some arguments of methods are interpreted as symbols and not</span>
+<span class="sd">    as strings during the translation to send a request to Pathway Tools.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="k">return</span> <span class="bp">None</span>
 </div>
 <div class="viewcode-block" id="PFrame"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.PToolsFrame.PFrame">[docs]</a><span class="k">class</span> <span class="nc">PFrame</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Note: for a more complete documentation, please consult the web page TBD.</span>
-<span class="sd">    </span>
 <span class="sd">    PFrame is a class to represent Pathway Tools&#39; frames. A PFrame can</span>
 <span class="sd">    represent a class frame (e.g., Reactions) as well as an instance frame</span>
 <span class="sd">    (e.g., RXN-9000). </span>
@@ -85,49 +113,27 @@
 <span class="sd">    By default, an instance PFrame (not a class PFrame) is created.</span>
 <span class="sd">    To create a PGDB object, use class PGDB, or call method pythoncyc.so.</span>
 
-<span class="sd">    By default, the data of the frame is not requested from the server, that is,</span>
-<span class="sd">    a PFrame object is created containing only the frame id and the PGDB.</span>
-<span class="sd">    All its slots and data can be fetched from Pathway Tools by</span>
-<span class="sd">    specifying the keyword argument getFrameData=True. For example, the following</span>
-<span class="sd">    create a frame for reaction RXN-9000 and retrieve all its slots and data,</span>
-
-<span class="sd">        PFrame(&#39;RXN-9000&#39;, meta, getFrameData=True)</span>
-
-<span class="sd">    For creating a class, the isClass keyword parameter must say so,</span>
-
-<span class="sd">        PFrame(&#39;Reactions&#39;, meta, isClass=True)</span>
-
-<span class="sd">    When creating a class, if getFrameData=True is specified, the class slots and its</span>
-<span class="sd">    data are fetched and all the instances of the class are also created.</span>
-
-<span class="sd">    In all cases, accessing one slot of a PFrame object will bring in all slots data</span>
-<span class="sd">    for that PFrame, if the data for that PFrame has not been retrieved.</span>
-<span class="sd">    For example, for a reaction, the slots left, right, substrates, and so on,</span>
-<span class="sd">    are populated if one of the slots of its PFrame object is accessed.</span>
-
-<span class="sd">    The attribute values of the PFrames cannot be modified, that is, slots are read only.</span>
-<span class="sd">    On the other hand, slots of Pathway Tools&#39; objects can be modified using methods</span>
-<span class="sd">    put_slot_value and put_slot_values. See class PGDB for these methods.</span>
-
 <span class="sd">    IPython</span>
 <span class="sd">    -------</span>
 <span class="sd">    </span>
 <span class="sd">    A few methods were written to display frames using HTML in IPython.</span>
 <span class="sd">    Naturally, this functionality is only defined when using IPython as a</span>
 <span class="sd">    Python interpreter.</span>
-<span class="sd">    </span>
+
+<span class="sd">    Please consult the the tutorial.html file under the doc directory</span>
+<span class="sd">    for an introduction on how to use this class.</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frameid</span><span class="p">,</span> <span class="n">pgdb</span><span class="p">,</span> <span class="n">getFrameData</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">isClass</span> <span class="o">=</span> <span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The PFrame is created assuming that the frameid is coercible to a frame in the PGDB.</span>
+<span class="sd">        In particular, the frameid string is not converted and must have the appropriate camel case.</span>
 <span class="sd">        Creation of a PFrame is done lazily when getFrameData is False but is retrieved</span>
 <span class="sd">        now when getFrameData is True.</span>
-<span class="sd">        If getFrameData is False, the PFrame is created assuming that the frameid exists in</span>
-<span class="sd">        the PGDB in which case an access to a slot will trigger the transfer of the</span>
-<span class="sd">        whole frame.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c"># Always store the frameid surrounded by vertical bars.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="s">&#39;frameid&#39;</span><span class="p">]</span> <span class="o">=</span>  <span class="n">frameid</span> <span class="k">if</span> <span class="p">(</span><span class="n">frameid</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;|&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">frameid</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;|&#39;</span><span class="p">))</span> <span class="k">else</span> <span class="s">&#39;|&#39;</span><span class="o">+</span><span class="n">frameid</span><span class="o">+</span><span class="s">&#39;|&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="s">&#39;frameid&#39;</span><span class="p">]</span> <span class="o">=</span>  <span class="n">frameid</span> <span class="k">if</span> <span class="p">(</span><span class="n">frameid</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;|&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">frameid</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;|&#39;</span><span class="p">))</span> <span class="k">else</span> <span class="s">&#39;|&#39;</span><span class="o">+</span><span class="n">frameid</span><span class="o">+</span><span class="s">&#39;|&#39;</span> 
         <span class="bp">self</span><span class="o">.</span><span class="n">_isclass</span> <span class="o">=</span> <span class="n">isClass</span>
         <span class="k">if</span> <span class="n">isClass</span><span class="p">:</span>
            <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="s">&#39;instances&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -137,13 +143,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="s">&#39;pgdb&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pgdb</span>
         <span class="c"># Add this frame on the list of current frames for this pgdb.</span>
         <span class="n">pgdb</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="s">&#39;_frames&#39;</span><span class="p">][</span><span class="n">convertLispIdtoPythonId</span><span class="p">(</span><span class="n">frameid</span><span class="p">)]</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="c"># Retrieve the whole frame from Pathway Tools if requested.</span>
         <span class="c"># TBD: add the frame on the list of instances for the corresponding class.</span>
         <span class="k">if</span> <span class="n">getFrameData</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">get_frame_data</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">None</span>
 
     <span class="c"># The following four definitions are for the pickle (or cPickle) module.</span>
-
+    <span class="c"># TBD: this is work in progress.</span>
     <span class="k">def</span> <span class="nf">__getinitargs__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frameid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pgdb</span><span class="p">)</span>
     
@@ -159,13 +166,16 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
 
     <span class="c"># End of definitions for pickle.</span>
-    </div>
+</div>
+    <span class="k">def</span> <span class="nf">__getslice__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">stride</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&#39;PFrame __getslice__ &#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">stride</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">instances</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">j</span><span class="p">:</span><span class="n">stride</span><span class="p">]</span>
+
     <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
         <span class="c"># Accessing a slot of the frame using attribute syntax (e.g. r.left)</span>
         <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span>
             <span class="k">print</span> <span class="s">&#39;PFrame __getattr__ &#39;</span><span class="p">,</span> <span class="n">attr</span>
-        <span class="c"># if attr.startswith(&#39;_&#39;):</span>
-        <span class="c"># return self.__dict__[attr]</span>
 
         <span class="k">if</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span>
@@ -178,18 +188,19 @@
                 <span class="k">return</span> <span class="bp">None</span>
                 <span class="c"># raise PythonCycError(&#39;No slot with name %s exists for frame %s.&#39; % (attr, self.frameid))</span>
         <span class="k">else</span><span class="p">:</span> 
-            <span class="c"># Get the frame object from Pathway Tools.</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">get_frame_data</span><span class="p">()</span>
+            <span class="c"># Get the slot value from Pathway Tools.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_frame_slot_value</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">attrId</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">):</span>
                 <span class="k">return</span> <span class="bp">None</span>
                 <span class="c"># raise PythonCycError(&#39;No slot with name %s exists for frame %s.&#39; % (attr, self.frameid))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">attrId</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">attr</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">_debug</span><span class="p">:</span>
            <span class="k">print</span> <span class="s">&quot;PFrame __getitem__ &quot;</span><span class="p">,</span> <span class="n">attr</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span><span class="nb">int</span><span class="p">):</span>
+        <span class="c"># The slice case is for attr = slice(i,j,s)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span><span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="nb">slice</span><span class="p">)):</span>
            <span class="k">if</span> <span class="s">&#39;instances&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
               <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">instances</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span>
            <span class="k">else</span><span class="p">:</span>
@@ -207,6 +218,22 @@
     <span class="k">def</span> <span class="nf">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span><span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
+<div class="viewcode-block" id="PFrame.get_frame_slot_value"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.PToolsFrame.PFrame.get_frame_slot_value">[docs]</a>    <span class="k">def</span> <span class="nf">get_frame_slot_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slot</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve the slot data for frame from Pathway Tools. </span>
+
+<span class="sd">        Return</span>
+<span class="sd">           the self PFrame, modified with the new slot with data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># FrameObject is a dictionary of slot names and values.</span>
+        <span class="p">[</span><span class="n">slotName</span><span class="p">,</span> <span class="n">value</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pgdb</span><span class="o">.</span><span class="n">sendPgdbFnCall</span><span class="p">(</span><span class="s">&#39;get-frame-slot-value&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">frameid</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">(</span><span class="n">slot</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">slotName</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PythonCycError</span><span class="p">(</span><span class="s">&quot;Slot &quot;</span><span class="o">+</span><span class="n">slot</span><span class="o">+</span><span class="s">&quot; does not exist for frame &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">frameid</span><span class="o">+</span><span class="s">&quot; from organism (orgid) &quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">pgdb</span><span class="o">.</span><span class="n">_orgid</span><span class="p">)</span>
+        <span class="c"># Modify slot name to allow Python&#39;s syntax (e.g., &#39;_&#39; instead of &#39;-&#39;).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">convertLispIdtoPythonId</span><span class="p">(</span><span class="n">slotName</span><span class="p">)]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+</div>
 <div class="viewcode-block" id="PFrame.get_frame_data"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.PToolsFrame.PFrame.get_frame_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_frame_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Retrieve the frame data from Pathway Tools, that is, all slots and their values</span>
@@ -230,13 +257,13 @@
     </div>
     <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">attr</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">PythonCycError</span><span class="p">(</span><span class="s">&quot;Attributes of PFrame objects cannot be modified &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">frameid</span><span class="p">,</span><span class="n">attr</span><span class="p">,</span><span class="n">val</span><span class="p">))</span><span class="o">+</span><span class="s">&quot;. Use methods put_slot_value or put_slot_values using a PGDB object instead.&quot;</span><span class="p">)</span>
+           <span class="k">raise</span> <span class="n">PythonCycError</span><span class="p">(</span><span class="s">&quot;PFrames are read only objects. Attributes of PFrame objects cannot be modified &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">frameid</span><span class="p">,</span><span class="n">attr</span><span class="p">,</span><span class="n">val</span><span class="p">))</span><span class="o">+</span><span class="s">&quot;. You can only modify slot frames for the PGDB in the running Pathway Tools by using methods put_slot_value or put_slot_values using a PGDB object.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
         <span class="k">return</span> <span class="bp">None</span>
     
     <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">attr</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;_&#39;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="n">PythonCycError</span><span class="p">(</span><span class="s">&quot;Attributes of PFrame objects cannot be modified &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">frameid</span><span class="p">,</span><span class="n">attr</span><span class="p">,</span><span class="n">val</span><span class="p">))</span><span class="o">+</span><span class="s">&quot;. Use methods put_slot_value or put_slot_values using a PGDB object instead.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">PythonCycError</span><span class="p">(</span><span class="s">&quot;PFrames are read only objects. Attributes of PFrame objects cannot be modified &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">frameid</span><span class="p">,</span><span class="n">attr</span><span class="p">,</span><span class="n">val</span><span class="p">))</span><span class="o">+</span><span class="s">&quot;. You can only modify slot frames for the PGDB in the running Pathway Tools by using methods put_slot_value or put_slot_values using a PGDB object.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
         <span class="k">return</span> <span class="bp">None</span>
     
@@ -321,7 +348,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, PythonCyc API.
+        &copy; Copyright 2014, Mario Latendresse.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # pythoncyc documentation build configuration file, created by
-# sphinx-quickstart on Fri Oct 31 09:18:47 2014.
+# sphinx-quickstart on Tue Nov  4 08:47:50 2014.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -18,7 +18,7 @@ import os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('./../pythoncyc/'))
+#sys.path.insert(0, os.path.abspath('.'))
 
 # -- General configuration ------------------------------------------------
 
@@ -47,7 +47,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'pythoncyc'
-copyright = u'2014, PythonCyc API'
+copyright = u'2014, Mario Latendresse'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -200,7 +200,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'pythoncyc.tex', u'pythoncyc Documentation',
-   u'PythonCyc API', 'manual'),
+   u'Mario Latendresse', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -230,7 +230,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'pythoncyc', u'pythoncyc Documentation',
-     [u'PythonCyc API'], 1)
+     [u'Mario Latendresse'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -244,7 +244,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'pythoncyc', u'pythoncyc Documentation',
-   u'PythonCyc API', 'pythoncyc', 'One line description of project.',
+   u'Mario Latendresse', 'pythoncyc', 'One line description of project.',
    'Miscellaneous'),
 ]
 
@@ -265,9 +265,9 @@ texinfo_documents = [
 
 # Bibliographic Dublin Core info.
 epub_title = u'pythoncyc'
-epub_author = u'PythonCyc API'
-epub_publisher = u'PythonCyc API'
-epub_copyright = u'2014, PythonCyc API'
+epub_author = u'Mario Latendresse'
+epub_publisher = u'Mario Latendresse'
+epub_copyright = u'2014, Mario Latendresse'
 
 # The basename for the epub file. It defaults to the project name.
 #epub_basename = u'pythoncyc'

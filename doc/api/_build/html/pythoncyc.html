@@ -55,94 +55,11 @@
 </div>
 <div class="section" id="module-pythoncyc.PGDB">
 <span id="pythoncyc-pgdb-module"></span><h2>pythoncyc.PGDB module<a class="headerlink" href="#module-pythoncyc.PGDB" title="Permalink to this headline">¶</a></h2>
-<p>Mario Latendresse, June 2014.</p>
-<p>Part of PythonCyc.</p>
-<p>For the documentation of this module, see class PGDB below.</p>
 <dl class="class">
 <dt id="pythoncyc.PGDB.PGDB">
 <em class="property">class </em><tt class="descclassname">pythoncyc.PGDB.</tt><tt class="descname">PGDB</tt><big>(</big><em>orgid</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB" title="Permalink to this definition">¶</a></dt>
-<dd><p>Note: for a more complete documentation, please consult the web page TBD.</p>
-<p>A PGDB object represents a Pathway Tools PGDB (Pathway/Genome Database).
-A PGDB object is created when one of the global methods &#8216;so&#8217; or
-&#8216;select_organism&#8217; are called. See file __init__.py for the definitions of
-these methods.
-For example,</p>
-<blockquote>
-<div>meta = pythoncyc.so(&#8216;meta&#8217;)</div></blockquote>
-<p>creates a PGDB object, that refers to Pathway Tools database (PGDB) MetaCyc,
-and assign it to variable meta. The &#8216;meta&#8217; string is the orgid of that PGDB.</p>
-<p>A PGDB object is used to communicate with Pathway Tools to retrieve frames and other
-data of the corresponding PGDB. For example, after creating the meta object above,
-the following will retrieve compound TRP (i.e., L-tryptophan) and assign it
-to variable trp (&#8216;TRP&#8217; is the frame id of compound L-tryptophan):</p>
-<blockquote>
-<div>trp = meta.trp</div></blockquote>
-<p>The operation meta.trp, if done for the first time, triggers a
-call to Pathway Tools to transfer the data of compound trp: the slots and their data
-are transferred locally to create a PFrame to represent the compound trp. (Note:
-the real name in Pathway Tools of the frame id of compound trp is in upper case, that is,
-&#8216;TRP&#8217;. More on this conversion below.)</p>
-<p>In PythonCyc, frame ids are strings prefixed and suffixed by &#8216;|&#8217;, such as</p>
-<blockquote>
-<div><blockquote>
-<div>print trp.frameid</div></blockquote>
-<p>=&gt;  <a href="#id1"><span class="problematic" id="id2">|TRP|</span></a></p>
-</div></blockquote>
-<p>The &#8216;<a href="#id3"><span class="problematic" id="id4">|...|</span></a>&#8216; is used to indicate that this string represents a frame id and can be
-interpreted by Pathway Tools as a frame id. In Lisp, the programming language used
-by Pathway Tools, the double vertical bars signify that this is a symbol and that
-it must be read exactly as given without any transformation (e.g., no upper case
-conversion on letters).</p>
-<p>This PFrame for trp is also bound to the PGDB meta. That is, executing meta.trp again
-will not retrieve the data from Pathway Tools, but simply used the PFrame already
-created for it.</p>
-<p>The slots of a frame can be referenced in several ways, for example to retrieve
-the slot &#8216;common-name&#8217;:</p>
-<blockquote>
-<div><ol class="arabic simple">
-<li>trp.common_name</li>
-<li>trp[&#8216;COMMON-NAME&#8217;]</li>
-</ol>
-</div></blockquote>
-<p>The first form uses Python&#8217;s syntax to access an attribute of an object. The second
-form uses indexing. The attribute name is converted to the real slot name of Pathway
-Tools which uses dashes, not underscores, and all letters are converted to upper case.
-The string used in the second form, the indexing syntax, is never converted.
-Naturally, attribute names in Python cannot use dashes, so PythonCyc allows the use
-of underscores instead of the dashes as used by Pathway Tools.</p>
-<p>Many more operations can be done using a PGDB object, such as retrieving
-classes of objects (e.g., reactions, pathways, genes) or calling one of the more
-than 150 methods listed below. For example, retrieveing all reactions can be done by</p>
-<blockquote>
-<div>reactions = meta.reactions</div></blockquote>
-<p>which assigns to variable reactions a PFrame representing the class of reactions from
-PGDB meta. This PFrame has an attribute &#8216;instances&#8217; assigned with the list of all reaction
-instances of meta. Each such reaction is a PFrame, although these PFrames have no other
-data than the frame id of each reaction. Also, all these PFrames are bound to PGDB meta.</p>
-<p>The operation meta.reactions differs from using the method all_reactions. The operation</p>
-<blockquote>
-<div>meta.all_reactions(type=&#8217;all&#8217;)</div></blockquote>
-<p>returns all reaction frame ids in PGDB meta. It does not create any PFrame. A second
-call meta.all_reactions(type=&#8217;all&#8217;) will request again the list of frame ids from
-Pathway Tools. This is not the case for meta.reactions where only one request will
-be made. The call to method all_reactions is usefull if indeed no PFrame should be created
-and only the frame ids are needed. This discussion is similar for almost all methods listed
-below where in most cases the return value is not a PFrame or a list of PFrames.</p>
-<p>Many Lisp functions can be called using Python&#8217;s syntax. These functions often need a frame
-identifier. A frame identifier can be given as a string or as PFrame object.
-For example,</p>
-<blockquote>
-<div>meta.reactions_of_compound(&#8216;TRP&#8217;)</div></blockquote>
-<p>where &#8216;TRP&#8217; is the frame id of compound L-tryptophan.
-Or using the trp variable assigned above (which is a PFrame with frame id &#8216;TRP&#8217;)</p>
-<blockquote>
-<div>meta.reactions_of_compound(trp)</div></blockquote>
-<p>Note that, if the given frame id does not exist in the PGDB, it will raise a
-PToolsError in Python because Pathway Tools itself will report a &#8216;non coercible frame&#8217;.</p>
-<p>Some functions have keywords arguments, which are always optional. But notice
-that the default value is often None. The value None is not translated to False, but
-indicates to use the default value of the Lisp function called. These defaults
-are given for each function listed below.</p>
+<dd><p>Please consult the the tutorial.html file under the doc directory
+for an introduction on how to use this class.</p>
 <dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.DNA_binding_sites_of_protein">
 <tt class="descname">DNA_binding_sites_of_protein</tt><big>(</big><em>tf</em>, <em>all_forms=None</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.DNA_binding_sites_of_protein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.DNA_binding_sites_of_protein" title="Permalink to this definition">¶</a></dt>
@@ -150,7 +67,7 @@ are given for each function listed below.</p>
 <dt>Description</dt>
 <dd>Given a transcription factor, return all of its DNA binding sites.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>tf</dt>
@@ -176,7 +93,7 @@ sites of modified forms and subunits of tf as well.</dd>
 <dd>A predicate that determines if a given regulation frame is
 describing activation.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>reg_frame</dt>
@@ -199,7 +116,7 @@ describing activation.</dd>
 <dd>Given two genes, this predicate will return True if they are on
 the same replicon, and adjacent to one another.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>g1</dt>
@@ -222,7 +139,7 @@ the same replicon, and adjacent to one another.</dd>
 <dd><dl class="docutils">
 <dt>Description</dt>
 <dd>Return a list of all cofactors used in the current PGDB.</dd>
-<dt>Arguments</dt>
+<dt>Parms</dt>
 <dd>None.</dd>
 <dt>Side-Effects</dt>
 <dd>None.</dd>
@@ -240,7 +157,7 @@ the same replicon, and adjacent to one another.</dd>
 related proteins of its modified and unmodified forms, meaning
 all of their direct subunits and all of their direct containers.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -262,7 +179,7 @@ all of their direct subunits and all of their direct containers.</dd>
 <dt>Description</dt>
 <dd>Return all enzymes of a given type.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>type</dt>
@@ -289,7 +206,7 @@ their subunits and all of their containers. Unlike
 all_direct_forms_of_protein, this function is not limited to
 the direct containers only.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -313,7 +230,7 @@ the direct containers only.</dd>
 of a particular given class. Optionally, just unmodified forms
 of the proteins are returned.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>class_name</dt>
@@ -342,7 +259,7 @@ of regulation.</dd>
 <dt>Description</dt>
 <dd>Enumerate all of the modulators, or direct regulators, in the
 current PGDB.</dd>
-<dt>Arguments</dt>
+<dt>Parms</dt>
 <dd>None.</dd>
 <dt>Side-Effects</dt>
 <dd>None.</dd>
@@ -358,7 +275,7 @@ current PGDB.</dd>
 <dt>Description</dt>
 <dd>Enumerates all operons. In this case, an operon is defined as a
 list of overlapping instances of Transcription-Units.</dd>
-<dt>Arguments</dt>
+<dt>Parms</dt>
 <dd>None.</dd>
 <dt>Side-Effects</dt>
 <dd>None.</dd>
@@ -375,7 +292,7 @@ Transcription-Units in the list belong to the same operon.</dd>
 <dt>Description</dt>
 <dd>Returns a list of pathway instance frames of a specified type.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>selector</dt>
@@ -404,7 +321,7 @@ superpathways, will be returned.</dd>
 <dd>Collects all proteins (not necessarily enzymes) that are encoded
 by the given gene.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -426,7 +343,7 @@ by the given gene.</dd>
 <dt>Description</dt>
 <dd>Enumerates different types of protein complexes.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>filter</dt>
@@ -463,7 +380,7 @@ argument must be one of the following values:</p>
 <dt>Description</dt>
 <dd>Returns a set of reactions that fall within a particular category.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>type</dt>
@@ -523,7 +440,7 @@ non-spontaneous that will not be returned by enzyme.</dd>
 <dd><dl class="docutils">
 <dt>Description</dt>
 <dd>Enumerate all RNA polymerase sigma factors.</dd>
-<dt>Arguments</dt>
+<dt>Parms</dt>
 <dd>None.</dd>
 <dt>Side-Effects</dt>
 <dd>None.</dd>
@@ -540,7 +457,7 @@ non-spontaneous that will not be returned by enzyme.</dd>
 <dd>Returns all unique substrates used in the reactions specified by
 the argument rxns.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxns</dt>
@@ -564,7 +481,7 @@ contain strings.</dd>
 <dt>Description</dt>
 <dd>Enumerates all transcription factors, or just unmodified forms
 of transcription factors.</dd>
-<dt>Arguments</dt>
+<dt>Parms</dt>
 <dd><dl class="first last docutils">
 <dt>allow_modified_forms</dt>
 <dd>Keyword, A boolean value. If True, modified and
@@ -586,7 +503,7 @@ default value is t.</dd>
 <dd>Enumerates all chemicals transported by transport reactions in
 the current PGDB.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>from_compartment</dt>
@@ -614,7 +531,7 @@ compounds, such as protons and Na+.</dd>
 <dd><dl class="docutils">
 <dt>Description</dt>
 <dd>Enumerate all transport proteins.</dd>
-<dt>Arguments</dt>
+<dt>Parms</dt>
 <dd>None.</dd>
 <dt>Side-Effects</dt>
 <dd>None.</dd>
@@ -631,7 +548,7 @@ compounds, such as protons and Na+.</dd>
 <dd>Returns a list of transport proteins that transport across one
 of the given membranes.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>membranes</dt>
@@ -655,7 +572,7 @@ reaction substrates. Default value is &#8216;location&#8217;.</dd>
 
 <dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.autocatalytic_reactions_of_enzyme">
-<tt class="descname">autocatalytic_reactions_of_enzyme</tt><big>(</big><em>prot</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.autocatalytic_reactions_of_enzyme"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.autocatalytic_reactions_of_enzyme" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">autocatalytic_reactions_of_enzyme</tt><big>(</big><em>protein</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.autocatalytic_reactions_of_enzyme"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.autocatalytic_reactions_of_enzyme" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Description</dt>
 <dd>Returns a list of reaction frames, where the protein
@@ -664,10 +581,10 @@ has no associated Enzymatic Reaction frame. This implies that
 the protein substrate of the reaction might autocatalyzing the
 reaction.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
-<dt>prot</dt>
+<dt>protein</dt>
 <dd>An instance frame of class Proteins, a frame id or PFrame.</dd>
 </dl>
 </div></blockquote>
@@ -688,7 +605,7 @@ reaction.</dd>
 components of the protein that are RNAs or compounds, not just
 polypeptides.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>p</dt>
@@ -716,7 +633,7 @@ corresponding coefficients of the components in the first value.</dd>
 <dt>Description</dt>
 <dd>Returns the promoters of the given DNA binding site.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>tu</dt>
@@ -738,7 +655,7 @@ corresponding coefficients of the components in the first value.</dd>
 <dt>Description</dt>
 <dd>Returns all of the transcription factors of the given binding site.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>bsite</dt>
@@ -760,7 +677,7 @@ corresponding coefficients of the components in the first value.</dd>
 <dt>Description</dt>
 <dd>Returns all transcription units of a given binding site.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>promoter, a frame id or PFrame.  </dt>
@@ -778,13 +695,13 @@ mRNA-Binding-Sites.</dd>
 
 <dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.binding_sites_affecting_gene">
-<tt class="descname">binding_sites_affecting_gene</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.binding_sites_affecting_gene"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.binding_sites_affecting_gene" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">binding_sites_affecting_gene</tt><big>(</big><em>gene</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.binding_sites_affecting_gene"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.binding_sites_affecting_gene" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Description</dt>
 <dd>Returns all binding sites which are present in the same
 transcription units as the given gene.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -808,7 +725,7 @@ transcription units as the given gene.</dd>
 is located on a contig that is, in turn, part of a chromosome,
 then the contig is returned.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -833,7 +750,7 @@ If there is no associated replicon for the object, nil is
 returned. If the object is on more than one replicon, an error
 is thrown.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>item, a frame id or PFrame</dt>
@@ -857,7 +774,7 @@ DNA-Binding-Sites.</dd>
 <dt>Description</dt>
 <dd>Returns the replicon of the given transcription unit.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>tu</dt>
@@ -874,13 +791,13 @@ DNA-Binding-Sites.</dd>
 
 <dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.cofactors_and_pgroups_of_enzrxn">
-<tt class="descname">cofactors_and_pgroups_of_enzrxn</tt><big>(</big><em>eznrxn</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.cofactors_and_pgroups_of_enzrxn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.cofactors_and_pgroups_of_enzrxn" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">cofactors_and_pgroups_of_enzrxn</tt><big>(</big><em>enzrxn</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.cofactors_and_pgroups_of_enzrxn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.cofactors_and_pgroups_of_enzrxn" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Description</dt>
 <dd>Returns the cofactors and prosthetic groups of an enzymatic
 reaction.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>enzrxn</dt>
@@ -904,11 +821,11 @@ representing cofactors and/or prosthetic groups.</dd>
 <dd>Returns the compartment of the reaction for non-transport
 reactions.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxn</dt>
-<dd>An instance of the class Reactions, a frame id or PFrame.</dd>
+<dd>An instance of the class Reactions, that is, a frame id or PFrame.</dd>
 <dt>default</dt>
 <dd>Keyword, The default compartment for reactions without any
 compartment annotations on their substrates. The default
@@ -930,7 +847,7 @@ value is CCO-CYTOSOL.</dd>
 <dt>Description</dt>
 <dd>Returns the compartments associated with the given reaction.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxn</dt>
@@ -958,14 +875,14 @@ CCO-CYTOSOL.</dd>
 <tt class="descname">complex_p</tt><big>(</big><em>frame</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.complex_p"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.complex_p" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Description</dt>
-<dd>A predicate that determines whether the given protein is a
+<dd>A predicate that determines whether the given frame is a
 protein complex.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>frame</dt>
-<dd>An instance of the class Proteins, a frame id or PFrame.</dd>
+<dd>a frame id or PFrame.</dd>
 </dl>
 </div></blockquote>
 <dl class="docutils">
@@ -984,7 +901,7 @@ protein complex.</dd>
 <dd>Return all substrates of all reactions that are within the given
 pathway.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>pwy</dt>
@@ -1008,7 +925,7 @@ Polymer-Segments, or strings.</dd>
 <dd>Return all complexes of which the given protein is a direct or
 indirect component.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -1035,7 +952,7 @@ the return value.</dd>
 a terminator) along a transcription unit, return the
 correspodning regulon.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>site, a frame id or PFrame.  </dt>
@@ -1054,14 +971,14 @@ Promoters, Genes, or Terminators.</dd>
 
 <dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.containing_tus">
-<tt class="descname">containing_tus</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.containing_tus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.containing_tus" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">containing_tus</tt><big>(</big><em>site</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.containing_tus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.containing_tus" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Description</dt>
 <dd>Given a site (whether a DNA binding site, a promoter, a gene, or
 a terminator) along a transcription unit, return the
 correspodning transcription units.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>site, a frame id or PFrame.  </dt>
@@ -1086,7 +1003,7 @@ Promoters, Genes, or Terminators.</dd>
 <dd>Return all co-transcribed genes (i.e., genes which are a part of
 one or more of the same transcription units) of the given gene.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -1102,6 +1019,23 @@ one or more of the same transcription units) of the given gene.</dd>
 </dd></dl>
 
 <dl class="method">
+<dt id="pythoncyc.PGDB.PGDB.create_frame_objects">
+<tt class="descname">create_frame_objects</tt><big>(</big><em>frameids</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.create_frame_objects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.create_frame_objects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create all the required PFrames for the given frameids.
+If a PFrame already exist for a frameid on the PGDB, reuse
+that PFrame, otherwise create a PFrame. No data is transferred
+from Pathway Tools.</p>
+<dl class="docutils">
+<dt>Parm</dt>
+<dd>frameids, list of frame ids (strings)</dd>
+<dt>Side-Effects</dt>
+<dd>self is modified to contain new PFrames indexed on new frameids</dd>
+<dt>Return</dt>
+<dd>list of PFrames</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.deactivated_or_inhibited_by_compound">
 <tt class="descname">deactivated_or_inhibited_by_compound</tt><big>(</big><em>cpds</em>, <em>mode=None</em>, <em>mechanisms=None</em>, <em>phys_relevant=None</em>, <em>slots=None</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.deactivated_or_inhibited_by_compound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.deactivated_or_inhibited_by_compound" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
@@ -1109,7 +1043,7 @@ one or more of the same transcription units) of the given gene.</dd>
 <dd>Returns all pathways in which the given compound appears as a
 substrate.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>cpds</dt>
@@ -1146,7 +1080,7 @@ the physiologically-relevant? slot set to True.</dd>
 <dd>Return all activators that are connected to an activated object
 by a single regulation object.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>item</dt>
@@ -1157,7 +1091,7 @@ by a single regulation object.</dd>
 <dt>Side-Effects</dt>
 <dd>None.</dd>
 <dt>Return value</dt>
-<dd>A list of frames that activate x.</dd>
+<dd>A list of frames that activate item.</dd>
 </dl>
 </dd></dl>
 
@@ -1169,7 +1103,7 @@ by a single regulation object.</dd>
 <dd>Return all inhibitors that are connected to an inhibited object
 by a single regulation object.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>item</dt>
@@ -1186,13 +1120,13 @@ by a single regulation object.</dd>
 
 <dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.direct_regulators">
-<tt class="descname">direct_regulators</tt><big>(</big><em>item</em>, <em>filter=None</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.direct_regulators"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.direct_regulators" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">direct_regulators</tt><big>(</big><em>item</em>, <em>filter_fn=None</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.direct_regulators"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.direct_regulators" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Description</dt>
 <dd>Return all regulators that are connected to a regulated object
 by a single regulation object.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>item</dt>
@@ -1206,7 +1140,7 @@ used to find the regulators.</dd>
 <dt>Side-Effects</dt>
 <dd>None.</dd>
 <dt>Return value</dt>
-<dd>A list of frames that regulate x.</dd>
+<dd>A list of frames that regulate item.</dd>
 </dl>
 </dd></dl>
 
@@ -1218,7 +1152,7 @@ used to find the regulators.</dd>
 <dd>A predicate that determines if the given frame is an instance of
 the class DNA-Binding-Sites.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -1241,7 +1175,7 @@ the class DNA-Binding-Sites.</dd>
 <dd>Returns the list of activators (generally small molecules) of
 the enzymatic reaction frame.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>er</dt>
@@ -1268,7 +1202,7 @@ physiologically-relevant? slot set to True.</dd>
 <dd>Returns the list of inhibitors (generally small molecules) of
 the enzymatic reaction frame.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>er</dt>
@@ -1296,11 +1230,11 @@ physiologically-relevant? slot set to True.</dd>
 reaction. If the reaction is not provided, then we return the
 full enzyme name.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>enzyme</dt>
-<dd>An instance of the class Proteins, a frame id or PFrame.</dd>
+<dd>An instance of the class Proteins, that is, a frame id or a PFrame.</dd>
 <dt>reaction</dt>
 <dd>Keyword, An instance of the class Reactions.</dd>
 </dl>
@@ -1321,7 +1255,7 @@ full enzyme name.</dd>
 <dd>Predicate that determines whether a specified protein is an
 enzyme or not.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -1365,7 +1299,7 @@ enzyme.</dd>
 <dd>Collects all of the enzymes encoded by the given gene, including
 modified forms and complexes in which it is a sub-component.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -1387,7 +1321,7 @@ modified forms and complexes in which it is a sub-component.</dd>
 <dt>Description</dt>
 <dd>Return all enzymes that are present in the given pathway.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>pwy</dt>
@@ -1424,7 +1358,7 @@ Protein-RNA-Complexes.</dd>
 <dt>Description</dt>
 <dd>Return the enzymes that catalyze a given reaction.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><blockquote>
 <div><dl class="docutils">
@@ -1472,11 +1406,11 @@ enzymatic reactions. Note that two enzrxns for the same enzyme
 could have the same common name, so we avoid including the same
 name twice.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>enzyme</dt>
-<dd>A instance of the class Proteins, a frame id or PFrame.</dd>
+<dd>An instance of the class Proteins, that is, a frame id or a PFrame.</dd>
 <dt>use_frame_name</dt>
 <dd>Keyword, If True, then the frameid of the enzyme
 instance is used in computing the enzyme name. Defaults to
@@ -1505,7 +1439,7 @@ names of the known catalytic activities of enzyme.</dd>
 <dd>Groups together genes based on whether each gene is a gene
 neighbor with other genes.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>genes</dt>
@@ -1532,11 +1466,11 @@ neighbors of the first gene.</dd>
 <dt>Description</dt>
 <dd>A predicate to determine if the given frame is a gene.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>item</dt>
-<dd>A frame object or frameid, a frame id or PFrame.</dd>
+<dd>a frame id or PFrame.</dd>
 </dl>
 </div></blockquote>
 <dl class="docutils">
@@ -1555,7 +1489,7 @@ neighbors of the first gene.</dd>
 <dd>Given a gene, return all of the transcription units which
 contain the gene.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -1577,7 +1511,7 @@ contain the gene.</dd>
 <dt>Description</dt>
 <dd>Given a gene, return all other genes in the same operon.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -1599,7 +1533,7 @@ contain the gene.</dd>
 <dt>Description</dt>
 <dd>Return all genes coding for enzymes in the given pathway.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>pwy</dt>
@@ -1620,16 +1554,16 @@ sequence of the pathway.</dd>
 
 <dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.genes_of_protein">
-<tt class="descname">genes_of_protein</tt><big>(</big><em>p</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.genes_of_protein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.genes_of_protein" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">genes_of_protein</tt><big>(</big><em>protein</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.genes_of_protein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.genes_of_protein" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Description</dt>
 <dd>Given a protein, return the set of genes which encode all of the
 monomers of the protein.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
-<dt>p</dt>
+<dt>protein</dt>
 <dd>An instance of the class Proteins, a frame id or PFrame.</dd>
 </dl>
 </div></blockquote>
@@ -1643,16 +1577,16 @@ monomers of the protein.</dd>
 
 <dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.genes_of_proteins">
-<tt class="descname">genes_of_proteins</tt><big>(</big><em>p</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.genes_of_proteins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.genes_of_proteins" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">genes_of_proteins</tt><big>(</big><em>protein</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.genes_of_proteins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.genes_of_proteins" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Description</dt>
 <dd>The same as genes_of_protein, except that it takes a list of
 proteins and returns a set of genes.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
-<dt>p</dt>
+<dt>protein</dt>
 <dd>A list of instances of the class Proteins, a frame id or PFrame.</dd>
 </dl>
 </div></blockquote>
@@ -1671,7 +1605,7 @@ proteins and returns a set of genes.</dd>
 <dt>Description</dt>
 <dd>Return all genes that encode the enzymes of a given reaction.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxn</dt>
@@ -1694,7 +1628,7 @@ proteins and returns a set of genes.</dd>
 <dd>Return all genes regulated by the given gene by means of a
 transcription factor.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -1717,7 +1651,7 @@ transcription factor.</dd>
 <dd>Return all of the genes for which the given protein, or its
 modified form, acts as a regulator.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -1740,7 +1674,7 @@ modified form, acts as a regulator.</dd>
 <dd>Return all genes regulating the given gene by means of a
 transcription factor.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -1762,7 +1696,7 @@ transcription factor.</dd>
 ClassName must be exactly as Pathway Tools expect the name of the class,
 no conversion is applied.</p>
 <dl class="docutils">
-<dt>Argument</dt>
+<dt>Parm</dt>
 <dd>className, a string (e.g., Reactions)</dd>
 <dt>Returns</dt>
 <dd>list of frameids</dd>
@@ -1775,10 +1709,10 @@ no conversion is applied.</p>
 <dd><p>Retrieve the class slots and their values, creating a PFrame for the class.
 Retrieve also the list of instances from Pathway Tools and
 create a PFrame for each instance. Store the list of PFrames
-in attribute &#8216;instances&#8217; of the class object. If getInstanceData is True,
+in attribute &#8216;instances&#8217; of the class object. If getInstancesData is True,
 get also all instances slots and their data.</p>
 <dl class="docutils">
-<dt>Arguments</dt>
+<dt>Parms</dt>
 <dd><p class="first">realClassName, a string, the real name of the class to retrieve.
 attr,          a string, the name used by the caller to retrieve that class.
 getInstancesData, boolean, True =&gt; get the slots and data of all instances.</p>
@@ -1800,7 +1734,7 @@ as Python attributes.</dd>
 and their data. Reuse the PFrame of frameid if it already exist for this PGDB,
 otherwise create one and attach it to this PGDB.</p>
 <dl class="docutils">
-<dt>Argument</dt>
+<dt>Parm</dt>
 <dd>frameids, list of frame ids (strings).</dd>
 <dt>Return</dt>
 <dd>list of PFrames, one for each frame id.</dd>
@@ -1825,11 +1759,11 @@ from Pathway Tools and the corresponding PFrames need to be created.</p>
 <dd>Given an object, compute the string name. The method used to
 compute the name varies per the object class.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>item</dt>
-<dd>A frame object or a frameid, a frame id or PFrame.</dd>
+<dd>A frame id or PFrame.</dd>
 <dt>rxn_eqn_as_name</dt>
 <dd>Keyword, If True, then we use the reaction
 equation in string form as the name of the reaction.
@@ -1884,7 +1818,7 @@ the function to treat the frame as another class.</dd>
 (i.e., occurr earlier in the pathway) of the given reaction in
 the given pathway.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxn</dt>
@@ -1905,7 +1839,7 @@ the given pathway.</dd>
 <dt id="pythoncyc.PGDB.PGDB.get_slot_value">
 <tt class="descname">get_slot_value</tt><big>(</big><em>frameid</em>, <em>slotName</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.get_slot_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.get_slot_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the single slot value of a frame object.
-Arguments</p>
+Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>frameid</dt>
@@ -1928,7 +1862,7 @@ Arguments</p>
 <dt id="pythoncyc.PGDB.PGDB.get_slot_values">
 <tt class="descname">get_slot_values</tt><big>(</big><em>frameid</em>, <em>slotName</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.get_slot_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.get_slot_values" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the slot values of a frame object.
-Arguments</p>
+Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>frameid</dt>
@@ -1960,7 +1894,7 @@ strings, or numbers.</dd>
 occurr later in the pathway) of the given reaction in the given
 pathway.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxn</dt>
@@ -1985,7 +1919,7 @@ pathway.</dd>
 <dd>This function is the same as the function containers-of,
 except that it only includes containers that are homomultimers.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -2011,7 +1945,7 @@ the return value.</dd>
 <dd>A predicate that determines if a given regulation frame is
 describing inhibition.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>reg_frame</dt>
@@ -2033,7 +1967,7 @@ describing inhibition.</dd>
 Return the real name of that class because the className may have
 been transformed by fn class-name-p to generate the closest real class name.</p>
 <dl class="docutils">
-<dt>Argument</dt>
+<dt>Parm</dt>
 <dd>className, a string, the class name to verify.</dd>
 <dt>Return</dt>
 <dd>a string, either className itself, or modified by replacing
@@ -2045,16 +1979,18 @@ name in Pathway Tools.</dd>
 <dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.is_an_instance_name">
 <tt class="descname">is_an_instance_name</tt><big>(</big><em>frameid</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.is_an_instance_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.is_an_instance_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>As method is_a_class_name but for frame objects (instances).
+<dd><p>Similar to method is_a_class_name but for frame objects (instances).
 If frame id is a real frame id of an object of this PGDB, returns it as is.
 If not, try to convert it to a real frame id by transforming cases of
 letters and underscores to dashes.</p>
-<dl class="docutils">
-<dt>Argument</dt>
+<blockquote>
+<div><dl class="docutils">
+<dt>Parm</dt>
 <dd>frameid, a string.</dd>
 <dt>Returns</dt>
 <dd>a string representing an existing frame in the PGDB.</dd>
 </dl>
+</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -2065,7 +2001,7 @@ letters and underscores to dashes.</p>
 <dd>A predicate that determines whether the given protein is a
 leader peptide.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -2082,13 +2018,13 @@ leader peptide.</dd>
 
 <dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.modified_and_unmodified_forms">
-<tt class="descname">modified_and_unmodified_forms</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.modified_and_unmodified_forms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.modified_and_unmodified_forms" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">modified_and_unmodified_forms</tt><big>(</big><em>protein</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.modified_and_unmodified_forms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.modified_and_unmodified_forms" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Description</dt>
 <dd>Returns all of the modified and unmodified forms of the given
 protein.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -2111,7 +2047,7 @@ protein.</dd>
 <dd>Returns all containers of a protein (including itself), and all
 modified forms of the containers.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -2133,7 +2069,7 @@ modified forms of the containers.</dd>
 <dt>Description</dt>
 <dd>Returns all modified forms of a protein.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -2162,7 +2098,7 @@ of protein.</dd>
 <dt>Description</dt>
 <dd>Returns the monomers of the given protein complex.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>p</dt>
@@ -2196,7 +2132,7 @@ value.</dd>
 &#8220;neighbors&#8221;, or within a certain number of genes from one
 another along the replicon.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>g1</dt>
@@ -2223,7 +2159,7 @@ and g2 can be from one another. Default value is 10.</dd>
 <dt>Description</dt>
 <dd>Return the next gene on the replicon.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -2250,7 +2186,7 @@ last gene on a linear replicon.</dd>
 one connected component. See function pathway-components for
 more explanation.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>pwy</dt>
@@ -2273,11 +2209,11 @@ more explanation.</dd>
 <dd>Return all of the generic forms of the given specific reaction.
 Not every reaction will necessarily have a generic form.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxn</dt>
-<dd>An instance of the class Reactions, a frame id or PFrame.</dd>
+<dd>An instance of the class Reactions, that is, a frame id or PFrame.</dd>
 </dl>
 </div></blockquote>
 <dl class="docutils">
@@ -2296,7 +2232,7 @@ Not every reaction will necessarily have a generic form.</dd>
 <dd>Given a gene, return a list of transcription units that form the
 operon containing the gene.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -2322,7 +2258,7 @@ reaction. Certain pathways have a list of enzymatic reactions
 that are known not to catalyze certain reactions. See the
 documentation of slot-unit enzyme-use for more information.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>pwy</dt>
@@ -2361,7 +2297,7 @@ N connected components, where N is the number of reactions in
 the pathway. Most pathways have one connected component, but not
 all.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>pwy, a frame id or PFrame. </dt>
@@ -2398,7 +2334,7 @@ list.</dd>
 <dd>A predicate that determines if the current reaction is
 considered to be a &#8216;pathway hole&#8217;, or without an associated enzyme.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxn</dt>
@@ -2425,7 +2361,7 @@ counted when determining the status of the reaction.</dd>
 <dd>Returns all pathways in which the given compound appears as a
 substrate.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>cpd</dt>
@@ -2465,7 +2401,7 @@ Pathways.</dd>
 <dd>Returns the list of pathways in which the given enzymatic
 reaction participates.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>enzrxn</dt>
@@ -2494,7 +2430,7 @@ super-pathways even if this option is nil.</dd>
 <dt>Description</dt>
 <dd>Returns the pathways of enzymes encoded by the given gene.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -2523,7 +2459,7 @@ super-pathways even if this option is nil.</dd>
 <dt>Description</dt>
 <dd>A predicate that determines if the given gene is a phantom gene.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -2546,7 +2482,7 @@ super-pathways even if this option is nil.</dd>
 <dd>A predicate that determines if the given protein is a
 polypeptide or a homomultimer.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -2568,7 +2504,7 @@ polypeptide or a homomultimer.</dd>
 <dt>Description</dt>
 <dd>Return the previous gene on the replicon.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -2588,13 +2524,13 @@ the gene is the first gene on a linear replicon.</dd>
 
 <dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.promoter_binding_sites">
-<tt class="descname">promoter_binding_sites</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.promoter_binding_sites"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.promoter_binding_sites" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">promoter_binding_sites</tt><big>(</big><em>promoter</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.promoter_binding_sites"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.promoter_binding_sites" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Description</dt>
 <dd>Returns all of the binding sites associated with the given
 promoter, across multiple transcription units.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>promoter</dt>
@@ -2617,7 +2553,7 @@ promoter, across multiple transcription units.</dd>
 <dd>A predicate that determines if the given gene encodes a protein
 (as opposed to an RNA).</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -2640,7 +2576,7 @@ promoter, across multiple transcription units.</dd>
 <dd>A predicate that checks if the given reaction is present in a
 list of cellular compartments.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxn</dt>
@@ -2681,7 +2617,7 @@ except that it only includes containers that are instances of
 either class Protein-Complexes, or class
 Protein-RNA-Complexes.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -2706,11 +2642,11 @@ the return value.</dd>
 <dt>Description</dt>
 <dd>A predicate that determines whether the given frame is a protein.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>frame</dt>
-<dd>An instance of the class Proteins, a frame id or PFrame.</dd>
+<dd>a frame id or PFrame.</dd>
 </dl>
 </div></blockquote>
 <dl class="docutils">
@@ -2728,7 +2664,7 @@ the return value.</dd>
 <dt>Description</dt>
 <dd>A predicate that determines if the given gene is a pseudo-gene.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -2752,7 +2688,7 @@ value (e.g., not a list).</p>
 <dt>Important: The modified frame is not updated for any PFrame object that might has been</dt>
 <dd>previously loaded from that PGDB. This operation should be used only
 for its effect on the PGDB in the running Pathway Tools application.</dd>
-<dt>Arguments</dt>
+<dt>Parms</dt>
 <dd><dl class="first last docutils">
 <dt>frameid</dt>
 <dd>a string representing the unique identifier for a frame object.</dd>
@@ -2784,7 +2720,7 @@ a list of objects.</p>
 <dt>Important: The modified frame is not updated for any PFrame object that might has been</dt>
 <dd>previously loaded from that PGDB. This operation should be used only
 for its effect on the PGDB in the running Pathway Tools application.</dd>
-<dt>Arguments</dt>
+<dt>Parms</dt>
 <dd><dl class="first last docutils">
 <dt>frameid</dt>
 <dd>a string representing the unique identifier for a frame object.</dd>
@@ -2820,11 +2756,11 @@ explicit direction or a pathway is given as an argument, then
 the direction is computationally inferred from available
 evidence within the PGDB.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxn</dt>
-<dd>An instance of the class Reactions, a frame id or PFrame.</dd>
+<dd>An instance of the class Reactions, that is,  a frame id or PFrame.</dd>
 <dt>direction</dt>
 <dd><p class="first">Keyword, Can take on the following values:</p>
 <dl class="last docutils">
@@ -2861,7 +2797,7 @@ strings.</dd>
 <dt>Description</dt>
 <dd>Returns a keyword describing the type of reaction.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxn</dt>
@@ -2903,7 +2839,7 @@ small molecule.</dd>
 <dd>Return all reactions in which the given compound participates as
 a substrate.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>cpd, a frame id or PFrame.  </dt>
@@ -2933,16 +2869,16 @@ reactions.</dd>
 
 <dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.reactions_of_enzyme">
-<tt class="descname">reactions_of_enzyme</tt><big>(</big><em>e</em>, <em>kb=None</em>, <em>include_specific_forms=None</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.reactions_of_enzyme"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.reactions_of_enzyme" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">reactions_of_enzyme</tt><big>(</big><em>protein</em>, <em>kb=None</em>, <em>include_specific_forms=None</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.reactions_of_enzyme"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.reactions_of_enzyme" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Description</dt>
 <dd>Return all of the reactions associated with a given protein via
 enzymatic reactions.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
-<dt>e</dt>
+<dt>protein</dt>
 <dd>An instance of the class Proteins, a frame id or PFrame.</dd>
 <dt>kb</dt>
 <dd>Keyword, The KB object of the KB in which to find
@@ -2968,7 +2904,7 @@ generic reactions are also returned. Default value is True.</dd>
 <dd>Returns all reactions catalyzed by enzymes encoded by the given
 gene.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -2985,16 +2921,16 @@ gene.</dd>
 
 <dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.reactions_of_protein">
-<tt class="descname">reactions_of_protein</tt><big>(</big><em>p</em>, <em>check_protein_components=None</em>, <em>check_protein_containers=None</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.reactions_of_protein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.reactions_of_protein" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">reactions_of_protein</tt><big>(</big><em>protein</em>, <em>check_protein_components=None</em>, <em>check_protein_containers=None</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.reactions_of_protein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.reactions_of_protein" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Description</dt>
 <dd>Returns all of the associated reactions that the given protein,
 or its components, catalyzes.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
-<dt>p</dt>
+<dt>protein</dt>
 <dd>An instance of the class Proteins, a frame id or PFrame.</dd>
 <dt>check_protein_components?</dt>
 <dd>Keyword, If True, check all components of this protein for
@@ -3021,7 +2957,7 @@ of the protein for catalyzed reactions.</dd>
 proteins to their unmodified form, and then removes any
 duplicates from the subsequent list.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>prots</dt>
@@ -3049,7 +2985,7 @@ it is bound to a small molecule.</dd>
 one of the regulated entities is a promoter or terminator of the
 transcription unit.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>reg_frame</dt>
@@ -3072,7 +3008,7 @@ transcription unit.</dd>
 <dd>A predicate that determines if the given protein is a regulator
 of the specified class.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -3097,7 +3033,7 @@ of the specified class.</dd>
 <dd>Returns all transcription factors that regulate the given
 transcription unit.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>tu</dt>
@@ -3119,7 +3055,7 @@ transcription unit.</dd>
 <dt>Description</dt>
 <dd>Returns a list of proteins that are regulators of the given gene.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -3147,7 +3083,7 @@ inhibitor proteins.</dd>
 <dt>Description</dt>
 <dd>Returns a list of transcription factors of an operon.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>operon_list</dt>
@@ -3175,7 +3111,7 @@ protein returned.</dd>
 <dd>Returns all transcription units regulated by any form of the
 given protein.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -3197,7 +3133,7 @@ given protein.</dd>
 <dt>Description</dt>
 <dd>A predicate that determines if the given gene encodes an RNA.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -3220,7 +3156,7 @@ module and there is this version which is run under a specific PGDB.
 Notice though that the FBA input file provided will decide which organism
 is used for running FBA and may override this PGDB.</p>
 <dl class="docutils">
-<dt>Arguments</dt>
+<dt>Parms</dt>
 <dd><dl class="first last docutils">
 <dt>fileName, a string which is the name of the FBA input file on the</dt>
 <dd>running Pathway Tools machine.</dd>
@@ -3255,7 +3191,7 @@ or the number of active reactions if the FBA input file is solving a model</li>
 <dd>A predicate that checks if the given reaction is present in a
 list of cellular compartments.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxn</dt>
@@ -3295,11 +3231,11 @@ same compartment.</dd>
 <dd>A predicate that determines if there is evidence for the
 occurrence of the given reaction in the current PGDB.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxn</dt>
-<dd>An instance of the class Reactions, a frame id or PFrame.</dd>
+<dd>An instance of the class Reactions, that is, a frame id or PFrame.</dd>
 </dl>
 </div></blockquote>
 <dl class="docutils">
@@ -3318,13 +3254,13 @@ occurrence of the given reaction in the current PGDB.</dd>
 <dd>A predicate that is True if the given generic reaction is a
 generalized form of the given specific reaction.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>specific_rxn</dt>
-<dd>A child of the class Reactions, a frame id or PFrame.</dd>
+<dd>A child of the class Reactions, that is, a frame id or PFrame.</dd>
 <dt>generic_rxn</dt>
-<dd>A child of the class Reactions, a frame id or PFrame.</dd>
+<dd>A child of the class Reactions, that is, a frame id or PFrame.</dd>
 </dl>
 </div></blockquote>
 <dl class="docutils">
@@ -3344,7 +3280,7 @@ generalized form of the given specific reaction.</dd>
 isozymes (distinct proteins or protein classes that catalyze the
 same reaction).</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxn</dt>
@@ -3367,11 +3303,11 @@ same reaction).</dd>
 <dd>A predicate that tests if a given reaction has genes with no
 associated sequence information.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxn</dt>
-<dd>An instance of the class Reactions, a frame id or PFrame.</dd>
+<dd>An instance of the class Reactions, that is, a frame id or PFrame.</dd>
 <dt>complete</dt>
 <dd>Keyword, if True, the predicate will return True when there
 is any associated gene without a sequence. If False, the
@@ -3395,7 +3331,7 @@ without a sequence.</dd>
 <dd>A predicate to determine if two given reactions are adjacent to
 one another in the given pathway.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxn1</dt>
@@ -3422,7 +3358,7 @@ one another in the given pathway.</dd>
 <dd>Enumerates all reactions catalyzed by an enzyme that is a
 protein complex.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxns</dt>
@@ -3447,7 +3383,7 @@ complex as an enzyme.</dd>
 <dd>Enumerate all reactions that have isozymes (distinct proteins or
 protein classes that catalyze the same reaction).</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxns</dt>
@@ -3465,22 +3401,33 @@ isozymes.</dd>
 </dd></dl>
 
 <dl class="method">
+<dt id="pythoncyc.PGDB.PGDB.save_pgdb">
+<tt class="descname">save_pgdb</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.save_pgdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.save_pgdb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a PGDB that has been modified in the running Pathway Tools server.
+The PGDB that will be saved is based on the orgid of this PGDB object.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.sendPgdbFnCall">
 <tt class="descname">sendPgdbFnCall</tt><big>(</big><em>fn</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.sendPgdbFnCall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.sendPgdbFnCall" title="Permalink to this definition">¶</a></dt>
 <dd><p>Send a PGDB query to Pathway Tools based on function fn and arguments args and kwargs (keyword args)
-and return the result. This function call can handle Lisp functions that return multiple values. The Python
-server packages multiple values as a list.</p>
+and return the result. Note that if multiple values are returned by the fn, the Pathway Tools Python server 
+transforms them into a list.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.sendPgdbFnCallBool">
 <tt class="descname">sendPgdbFnCallBool</tt><big>(</big><em>fn</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.sendPgdbFnCallBool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.sendPgdbFnCallBool" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Send a PGDB query to Pathway Tools that will return a Bool value.
+This method takes care of translating no value or an empty list to False.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.sendPgdbFnCallList">
 <tt class="descname">sendPgdbFnCallList</tt><big>(</big><em>fn</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.sendPgdbFnCallList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.sendPgdbFnCallList" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Send a PGDB query to Pathway Tools that will return a List value.
+This method takes care of translating no value or False to an empty list.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.sendPgdbQuery">
@@ -3488,7 +3435,7 @@ server packages multiple values as a list.</p>
 <dd><p>Send a query for a specific PGDB using its orgid.
 Use the macro with-organism for the Lisp Python server.</p>
 <dl class="docutils">
-<dt>Argument</dt>
+<dt>Parm</dt>
 <dd>query, a string. That string should be acceptable to the Lisp Python server.</dd>
 <dt>Return</dt>
 <dd>the result (as a Pyton object) of the execution of the query in Pathway Tools.</dd>
@@ -3503,7 +3450,7 @@ Use the macro with-organism for the Lisp Python server.</p>
 <dd>Return all of the forms of the given protein that are complexes
 with small molecules.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -3520,15 +3467,15 @@ with small molecules.</dd>
 
 <dl class="method">
 <dt id="pythoncyc.PGDB.PGDB.species_of_protein">
-<tt class="descname">species_of_protein</tt><big>(</big><em>p</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.species_of_protein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.species_of_protein" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">species_of_protein</tt><big>(</big><em>protein</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#PGDB.species_of_protein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.PGDB.species_of_protein" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Description</dt>
 <dd>Get the associated species for the given protein.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
-<dt>p</dt>
+<dt>protein</dt>
 <dd>A list of instances of the class Proteins, a frame id or PFrame.</dd>
 </dl>
 </div></blockquote>
@@ -3548,11 +3495,11 @@ with small molecules.</dd>
 <dd>Return all of the specific forms of the given generic reaction.
 Not every reaction will necessarily have a specific form.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxn</dt>
-<dd>A child of the class Reactions, a frame id or PFrame.</dd>
+<dd>A child of the class Reactions, that is, a frame id or PFrame.</dd>
 </dl>
 </div></blockquote>
 <dl class="docutils">
@@ -3571,7 +3518,7 @@ Not every reaction will necessarily have a specific form.</dd>
 <dd>A predicate that determines if a parent of the given compound is
 a substrate of the given generic reaction.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>cpd</dt>
@@ -3601,7 +3548,7 @@ of proper reactants (the subset of reactants that are not also
 products), a list of all products, and a list of all proper
 products.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>pwy</dt>
@@ -3625,7 +3572,7 @@ Polymer-Segments, or a string.</dd>
 <dt>Description</dt>
 <dd>Return all of the reactants and products of a given reaction.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxn</dt>
@@ -3649,7 +3596,7 @@ children of class Polymer-Segments, or strings.</dd>
 <dd>A predicate that determines if the given object is an instance
 of the class Terminators.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -3672,7 +3619,7 @@ of the class Terminators.</dd>
 <dd>Find terminators in the same transcription unit and upstream of
 the given gene.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -3695,7 +3642,7 @@ the given gene.</dd>
 <dd>Returns a list of protein complexes that, when bound to the
 given compound, act as a transcription factor.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>cpd</dt>
@@ -3722,7 +3669,7 @@ transcription-factor? for more information.</dd>
 <dd>Return the top-most containers (i.e., they are not a component
 of any other protein complex) of the given protein.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -3745,7 +3692,7 @@ of any other protein complex) of the given protein.</dd>
 <dd>For a given transcription factor, find all active forms (i.e,
 form of the protein that regulates) of the transcription factor.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>tfs, a frame id or PFrame.  </dt>
@@ -3768,7 +3715,7 @@ form of the protein that regulates) of the transcription factor.</dd>
 <dd>For a single transcription factor or list of transcription
 factors, return all transcription factor ligands.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>tfs, a frame id or PFrame or a list of these. </dt>
@@ -3796,7 +3743,7 @@ active form is determined automatically.</dd>
 <dd>A predicate that determines if the given protein is a
 transcription factor, or a component of a transcription factor.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -3823,7 +3770,7 @@ factor as well.</dd>
 <dd>Returns a list of regulation frames that activate the
 transcription unit.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>tu</dt>
@@ -3845,7 +3792,7 @@ transcription unit.</dd>
 <dt>Description</dt>
 <dd>Returns all activator proteins of the given transcription unit.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>tu</dt>
@@ -3868,7 +3815,7 @@ transcription unit.</dd>
 <dd>Returns all components (binding sites, promoters, genes,
 terminators) of the given transcription unit.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>tu</dt>
@@ -3892,7 +3839,7 @@ Genes, or Terminators.</dd>
 <dt>Description</dt>
 <dd>Returns the binding sites of the given transcription unit.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>tu</dt>
@@ -3914,7 +3861,7 @@ Genes, or Terminators.</dd>
 <dt>Description</dt>
 <dd>Returns the first gene of the given transcription unit.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>tu</dt>
@@ -3936,7 +3883,7 @@ Genes, or Terminators.</dd>
 <dt>Description</dt>
 <dd>Returns the genes of the given transcription unit.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>tu</dt>
@@ -3959,7 +3906,7 @@ Genes, or Terminators.</dd>
 <dd>Returns a list of regulation frames that inhibit the
 transcription unit.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>tu</dt>
@@ -3981,7 +3928,7 @@ transcription unit.</dd>
 <dt>Description</dt>
 <dd>Returns all inhibitor proteins of the given transcription unit.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>tu</dt>
@@ -4003,7 +3950,7 @@ transcription unit.</dd>
 <dt>Description</dt>
 <dd>Returns the mRNA binding sites of the given transcription unit.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>tu</dt>
@@ -4025,7 +3972,7 @@ transcription unit.</dd>
 <dt>Description</dt>
 <dd>Returns the promoter of the given transcription unit.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>tu</dt>
@@ -4048,7 +3995,7 @@ transcription unit.</dd>
 <dd>Returns a list of regulation frames that regulate the
 transcription unit.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>tu</dt>
@@ -4070,7 +4017,7 @@ transcription unit.</dd>
 <dt>Description</dt>
 <dd>Returns the terminators of the given transcription unit.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>operon</dt>
@@ -4092,7 +4039,7 @@ transcription unit.</dd>
 <dt>Description</dt>
 <dd>Returns the binding sites of the given transcription unit.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>tu</dt>
@@ -4114,7 +4061,7 @@ transcription unit.</dd>
 <dt>Description</dt>
 <dd>Returns all transcription units of a given promoter.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>promoter</dt>
@@ -4137,7 +4084,7 @@ transcription unit.</dd>
 <dd>Return all of the transcription units for which the given
 protein, or its modified form, acts as a regulator.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -4160,7 +4107,7 @@ protein, or its modified form, acts as a regulator.</dd>
 <dd>Return the compounds in a transport reaction that change
 compartments.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>rxn</dt>
@@ -4204,7 +4151,7 @@ compartment.</dd>
 <dd>Return the unmodified form of the given protein, which might be
 the same as the given protein.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -4228,7 +4175,7 @@ the same as the given protein.</dd>
 unmodified-gene-products. This is useful if you are sure that
 there are no alternative splice forms of your gene.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -4251,7 +4198,7 @@ there are no alternative splice forms of your gene.</dd>
 <dd>Return all of the unmodified gene products (i.e. alternative
 splice forms) of the given gene.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>gene</dt>
@@ -4274,7 +4221,7 @@ splice forms) of the given gene.</dd>
 <dd>Return the unmodified form or unbound (to a small molecule) form
 of the given protein, which might be the same as the given protein.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>protein</dt>
@@ -4296,7 +4243,7 @@ of the given protein, which might be the same as the given protein.</dd>
 <dt>Description</dt>
 <dd>Returns all variants of a pathway.</dd>
 </dl>
-<p>Arguments</p>
+<p>Parms</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>pwy</dt>
@@ -4316,11 +4263,9 @@ of the given protein, which might be the same as the given protein.</dd>
 <dl class="function">
 <dt id="pythoncyc.PGDB.convertArgToLisp">
 <tt class="descclassname">pythoncyc.PGDB.</tt><tt class="descname">convertArgToLisp</tt><big>(</big><em>arg</em>, <em>inquote=False</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#convertArgToLisp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.convertArgToLisp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert the arg into an acceptable quoted object for Python server running on
-Pathway Tools.
-No general Lisp expression can be sent to the Pathway Tools Python server so that arg
-cannot be a general expression but only either a string, a symbol, a Boolean, a number
-or a quoted list.</p>
+<dd><p>Convert the arg into an acceptable quoted object for Python server
+running on Pathway Tools. Note that any list is converted to 
+a quoted Lisp list.</p>
 <dl class="docutils">
 <dt>Argument</dt>
 <dd>arg,     a PFrame, a string, a number, a boolean, None or an s-expr.
@@ -4331,15 +4276,19 @@ inquote, a Boolean, True =&gt; this arg is inside an already quoted expression.<
 </dd></dl>
 
 <dl class="function">
+<dt id="pythoncyc.PGDB.may_be_frameid">
+<tt class="descclassname">pythoncyc.PGDB.</tt><tt class="descname">may_be_frameid</tt><big>(</big><em>x</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#may_be_frameid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.may_be_frameid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="pythoncyc.PGDB.mkey">
 <tt class="descclassname">pythoncyc.PGDB.</tt><tt class="descname">mkey</tt><big>(</big><em>s</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PGDB.html#mkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PGDB.mkey" title="Permalink to this definition">¶</a></dt>
-<dd><p>A simple function to convert a string into a Lisp keyword.
-Argument</p>
-<blockquote>
-<div>s, any Python object</div></blockquote>
+<dd><p>A simple function to convert a string into a Lisp keyword.</p>
 <dl class="docutils">
-<dt>Return</dt>
-<dd>if s is a string, the string s suffixed by &#8216;:&#8217;, otherwise s itself.</dd>
+<dt>Parm</dt>
+<dd>s, any Python object</dd>
+<dt>Returns</dt>
+<dd>if s is a string, it is suffixed by &#8216;:&#8217;, otherwise s itself.</dd>
 </dl>
 </dd></dl>
 
@@ -4361,11 +4310,10 @@ kwargs, list of keyword arguments</div></blockquote>
 </div>
 <div class="section" id="module-pythoncyc.PTools">
 <span id="pythoncyc-ptools-module"></span><h2>pythoncyc.PTools module<a class="headerlink" href="#module-pythoncyc.PTools" title="Permalink to this headline">¶</a></h2>
-<p>Mario Latendresse, June 2014.</p>
-<p>Handle basic operations for receiving and sending messages via a network socket
-to Pathway Tools.</p>
+<p>This module handles basic operations for receiving and sending messages via a
+network socket to Pathway Tools.</p>
 <p>No major class is defined in this file, but only toplevel functions and
-some simple classes for raising errors.</p>
+some simple classes for errors handling.</p>
 <dl class="exception">
 <dt id="pythoncyc.PTools.PToolsError">
 <em class="property">exception </em><tt class="descclassname">pythoncyc.PTools.</tt><tt class="descname">PToolsError</tt><a class="reference internal" href="_modules/pythoncyc/PTools.html#PToolsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PTools.PToolsError" title="Permalink to this definition">¶</a></dt>
@@ -4392,7 +4340,7 @@ message. The &#8216;L&#8217; type assumes that the length of the message, in cha
 is given on the next 10 characters as an integer. The message length is the
 number of characters after these 10 characters.</p>
 <dl class="docutils">
-<dt>Argument</dt>
+<dt>Parm</dt>
 <dd>s, an open network socket.</dd>
 <dt>Return</dt>
 <dd>the message received on socket s as a string.</dd>
@@ -4403,7 +4351,7 @@ number of characters after these 10 characters.</p>
 <dt id="pythoncyc.PTools.recvFixedLength">
 <tt class="descclassname">pythoncyc.PTools.</tt><tt class="descname">recvFixedLength</tt><big>(</big><em>s</em>, <em>lengthMsg</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PTools.html#recvFixedLength"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PTools.recvFixedLength" title="Permalink to this definition">¶</a></dt>
 <dd><p>Receive a fixed length message on socket s.
-Argument</p>
+Parm</p>
 <blockquote>
 <div><dl class="docutils">
 <dt>lengthMsg, an integer, which is the length in characters of the </dt>
@@ -4425,7 +4373,7 @@ assumed that the message has ended. Therefore, it will always, whatever the leng
 of the message, take at least timeOut seconds to execute this method. If no character
 is received after 60 seconds, this method returns with an empty message.</p>
 <dl class="docutils">
-<dt>Arguments</dt>
+<dt>Parms</dt>
 <dd><p class="first">socket, an open network socket.
 timeOut, number of seconds before timing out between fragments of the received</p>
 <blockquote class="last">
@@ -4446,7 +4394,7 @@ timeOut, number of seconds before timing out between fragments of the received</
 <tt class="descclassname">pythoncyc.PTools.</tt><tt class="descname">sendQueryToPTools</tt><big>(</big><em>query</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PTools.html#sendQueryToPTools"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PTools.sendQueryToPTools" title="Permalink to this definition">¶</a></dt>
 <dd><p>Send a query to a running Pathway Tools application via a socket.</p>
 <dl class="docutils">
-<dt>Argument</dt>
+<dt>Parm</dt>
 <dd>query, a string that the Python server in Pathway Tools can evaluate.</dd>
 <dt>Returns</dt>
 <dd>The result of the query, as a Python object, decoded by Json.</dd>
@@ -4456,13 +4404,12 @@ timeOut, number of seconds before timing out between fragments of the received</
 </div>
 <div class="section" id="module-pythoncyc.PToolsFrame">
 <span id="pythoncyc-ptoolsframe-module"></span><h2>pythoncyc.PToolsFrame module<a class="headerlink" href="#module-pythoncyc.PToolsFrame" title="Permalink to this headline">¶</a></h2>
-<p>Mario Latendresse, June 2014.</p>
-<p>See class PFrame below for most of the documentation about this module.</p>
+<p>Please consult the the tutorial.html file under the doc directory
+for an introduction on how to use this class.</p>
 <dl class="class">
 <dt id="pythoncyc.PToolsFrame.PFrame">
 <em class="property">class </em><tt class="descclassname">pythoncyc.PToolsFrame.</tt><tt class="descname">PFrame</tt><big>(</big><em>frameid</em>, <em>pgdb</em>, <em>getFrameData=False</em>, <em>isClass=False</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PToolsFrame.html#PFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PToolsFrame.PFrame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Note: for a more complete documentation, please consult the web page TBD.</p>
-<p>PFrame is a class to represent Pathway Tools&#8217; frames. A PFrame can
+<dd><p>PFrame is a class to represent Pathway Tools&#8217; frames. A PFrame can
 represent a class frame (e.g., Reactions) as well as an instance frame
 (e.g., RXN-9000).</p>
 <p>The required parameters to create a PFrame are the frame id (a string) and a PGDB
@@ -4472,28 +4419,11 @@ create a PFrame to represent the reaction RXN-9000,</p>
 <div>PFrame(&#8216;RXN-9000&#8217;, meta)</div></blockquote>
 <p>By default, an instance PFrame (not a class PFrame) is created.
 To create a PGDB object, use class PGDB, or call method pythoncyc.so.</p>
-<p>By default, the data of the frame is not requested from the server, that is,
-a PFrame object is created containing only the frame id and the PGDB.
-All its slots and data can be fetched from Pathway Tools by
-specifying the keyword argument getFrameData=True. For example, the following
-create a frame for reaction RXN-9000 and retrieve all its slots and data,</p>
-<blockquote>
-<div>PFrame(&#8216;RXN-9000&#8217;, meta, getFrameData=True)</div></blockquote>
-<p>For creating a class, the isClass keyword parameter must say so,</p>
-<blockquote>
-<div>PFrame(&#8216;Reactions&#8217;, meta, isClass=True)</div></blockquote>
-<p>When creating a class, if getFrameData=True is specified, the class slots and its
-data are fetched and all the instances of the class are also created.</p>
-<p>In all cases, accessing one slot of a PFrame object will bring in all slots data
-for that PFrame, if the data for that PFrame has not been retrieved.
-For example, for a reaction, the slots left, right, substrates, and so on,
-are populated if one of the slots of its PFrame object is accessed.</p>
-<p>The attribute values of the PFrames cannot be modified, that is, slots are read only.
-On the other hand, slots of Pathway Tools&#8217; objects can be modified using methods
-put_slot_value and put_slot_values. See class PGDB for these methods.</p>
 <p>A few methods were written to display frames using HTML in IPython.
 Naturally, this functionality is only defined when using IPython as a
 Python interpreter.</p>
+<p>Please consult the the tutorial.html file under the doc directory
+for an introduction on how to use this class.</p>
 <dl class="method">
 <dt id="pythoncyc.PToolsFrame.PFrame.get_frame_data">
 <tt class="descname">get_frame_data</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pythoncyc/PToolsFrame.html#PFrame.get_frame_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PToolsFrame.PFrame.get_frame_data" title="Permalink to this definition">¶</a></dt>
@@ -4508,10 +4438,29 @@ object.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="pythoncyc.PToolsFrame.PFrame.get_frame_slot_value">
+<tt class="descname">get_frame_slot_value</tt><big>(</big><em>slot</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PToolsFrame.html#PFrame.get_frame_slot_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PToolsFrame.PFrame.get_frame_slot_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the slot data for frame from Pathway Tools.</p>
+<dl class="docutils">
+<dt>Return</dt>
+<dd>the self PFrame, modified with the new slot with data.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="pythoncyc.PToolsFrame.PFrame.vectorize_dict">
 <tt class="descname">vectorize_dict</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pythoncyc/PToolsFrame.html#PFrame.vectorize_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PToolsFrame.PFrame.vectorize_dict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="class">
+<dt id="pythoncyc.PToolsFrame.Symbol">
+<em class="property">class </em><tt class="descclassname">pythoncyc.PToolsFrame.</tt><tt class="descname">Symbol</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/PToolsFrame.html#Symbol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.PToolsFrame.Symbol" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class can be used to represent Lisp symbols in PythonCyc.
+For example, Symbol(&#8216;trp&#8217;) represents the symbol trp. It is mainly used
+to ensure that some arguments of methods are interpreted as symbols and not
+as strings during the translation to send a request to Pathway Tools.</p>
 </dd></dl>
 
 <dl class="function">
@@ -4523,8 +4472,6 @@ object.</p>
 </div>
 <div class="section" id="module-pythoncyc.config">
 <span id="pythoncyc-config-module"></span><h2>pythoncyc.config module<a class="headerlink" href="#module-pythoncyc.config" title="Permalink to this headline">¶</a></h2>
-<p>Mario Latendresse, June 2014</p>
-<p>Configuration module for PythonCyc.</p>
 <p>This module can be used to set various parameters for PythonCyc,
 in particular to set debug on or off, the host name and port number
 of the running Pathway Tools&#8217; Python server. By default, the Pathway Tools
@@ -4544,21 +4491,20 @@ Turning on debugging should turn on output tracings of the communications betwee
 </dd></dl>
 
 <dl class="function">
-<dt id="pythoncyc.config.set_hostname">
-<tt class="descclassname">pythoncyc.config.</tt><tt class="descname">set_hostname</tt><big>(</big><em>hostname</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/config.html#set_hostname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.config.set_hostname" title="Permalink to this definition">¶</a></dt>
+<dt id="pythoncyc.config.set_host_name">
+<tt class="descclassname">pythoncyc.config.</tt><tt class="descname">set_host_name</tt><big>(</big><em>hostname</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/config.html#set_host_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.config.set_host_name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="pythoncyc.config.set_hostport">
-<tt class="descclassname">pythoncyc.config.</tt><tt class="descname">set_hostport</tt><big>(</big><em>hostport</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/config.html#set_hostport"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.config.set_hostport" title="Permalink to this definition">¶</a></dt>
+<dt id="pythoncyc.config.set_host_port">
+<tt class="descclassname">pythoncyc.config.</tt><tt class="descname">set_host_port</tt><big>(</big><em>hostport</em><big>)</big><a class="reference internal" href="_modules/pythoncyc/config.html#set_host_port"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.config.set_host_port" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
 <div class="section" id="module-pythoncyc">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pythoncyc" title="Permalink to this headline">¶</a></h2>
-<p>Mario Latendresse, June 2014.</p>
-<p>This is PythonCyc, a Python interface module to Pathway Tools.
-This code has been tested with Python 2.7.</p>
+<p>This module is part of PythonCyc, a Python interface module to Pathway Tools.
+This code has been tested with Python 2.6.</p>
 <p>Pathway Tools (version 18.5 and up) must be running on some machine
 with at least the option &#8216;-python&#8217;. It is also recommended
 to start Pathway Tools with the option -lisp, so that the
@@ -4569,15 +4515,8 @@ PGDB (an organism database in Pathway Tools) has been selected.
 In fact, two of these functions, select_organism and
 its synonym so, are needed to &#8220;select&#8221; a PGDB by creating a PGDB object.
 See class PGDB in PGDB.py for information about how to use a PGDB object.</p>
-<p>See the README.txt file for more documentation about PythonCyc.</p>
-<p>For comments, questions and bug reports about PythonCyc,
-send an email to <a class="reference external" href="mailto:ptools-support&#37;&#52;&#48;ai&#46;sri&#46;com">ptools-support<span>&#64;</span>ai<span>&#46;</span>sri<span>&#46;</span>com</a></p>
-<div class="section" id="acknowledgments">
-<h3>Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permalink to this headline">¶</a></h3>
-<p>Thanks to Eli Bogart to have inspired some implementation details
-of PythonCyc via PyCyc, Tomer Altman for the
-Pathway Tools API documentation at <a class="reference external" href="http://brg.ai.sri.com/ptools/api/">http://brg.ai.sri.com/ptools/api/</a>
-and Daniel Weaver for suggestions to implement some specific functions.</p>
+<p>Please consult the tutorial.html file, under directory doc, for more information
+about how to use PythonCyc.</p>
 <dl class="function">
 <dt id="pythoncyc.all_orgids">
 <tt class="descclassname">pythoncyc.</tt><tt class="descname">all_orgids</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/pythoncyc.html#all_orgids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pythoncyc.all_orgids" title="Permalink to this definition">¶</a></dt>
@@ -4632,7 +4571,6 @@ in file PGDB.py.</p>
 
 </div>
 </div>
-</div>
 
 
           </div>
@@ -4648,10 +4586,7 @@ in file PGDB.py.</p>
 <li><a class="reference internal" href="#module-pythoncyc.PTools">pythoncyc.PTools module</a></li>
 <li><a class="reference internal" href="#module-pythoncyc.PToolsFrame">pythoncyc.PToolsFrame module</a></li>
 <li><a class="reference internal" href="#module-pythoncyc.config">pythoncyc.config module</a></li>
-<li><a class="reference internal" href="#module-pythoncyc">Module contents</a><ul>
-<li><a class="reference internal" href="#acknowledgments">Acknowledgments</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#module-pythoncyc">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -4697,7 +4632,7 @@ in file PGDB.py.</p>
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, PythonCyc API.
+        &copy; Copyright 2014, Mario Latendresse.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>

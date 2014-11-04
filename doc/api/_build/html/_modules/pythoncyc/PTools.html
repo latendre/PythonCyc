@@ -48,14 +48,34 @@
           <div class="body">
             
   <h1>Source code for pythoncyc.PTools</h1><div class="highlight"><pre>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Mario Latendresse, June 2014.</span>
+<span class="c"># Copyright (c) 2014, SRI International</span>
+<span class="c"># </span>
+<span class="c"># Permission is hereby granted, free of charge, to any person obtaining</span>
+<span class="c"># a copy of this software and associated documentation files (the</span>
+<span class="c"># &quot;Software&quot;), to deal in the Software without restriction, including</span>
+<span class="c"># without limitation the rights to use, copy, modify, merge, publish,</span>
+<span class="c"># distribute, sublicense, and/or sell copies of the Software, and to</span>
+<span class="c"># permit persons to whom the Software is furnished to do so, subject to</span>
+<span class="c"># the following conditions:</span>
+<span class="c"># </span>
+<span class="c"># The above copyright notice and this permission notice shall be</span>
+<span class="c"># included in all copies or substantial portions of the Software.</span>
+<span class="c"># </span>
+<span class="c"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,</span>
+<span class="c"># EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF</span>
+<span class="c"># MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND</span>
+<span class="c"># NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE</span>
+<span class="c"># LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION</span>
+<span class="c"># OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION</span>
+<span class="c"># WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</span>
+<span class="c"># ----------------------------------------------------------------------</span>
 
-<span class="sd">Handle basic operations for receiving and sending messages via a network socket</span>
-<span class="sd">to Pathway Tools.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module handles basic operations for receiving and sending messages via a</span>
+<span class="sd">network socket to Pathway Tools.</span>
 
 <span class="sd">No major class is defined in this file, but only toplevel functions and</span>
-<span class="sd">some simple classes for raising errors.</span>
+<span class="sd">some simple classes for errors handling.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 
@@ -64,7 +84,7 @@
 <span class="kn">import</span> <span class="nn">socket</span> <span class="kn">as</span> <span class="nn">so</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">pythoncyc.config</span> <span class="kn">as</span> <span class="nn">config</span>
+<span class="kn">import</span> <span class="nn">config</span>
 
 <div class="viewcode-block" id="recvAll"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.PTools.recvAll">[docs]</a><span class="k">def</span> <span class="nf">recvAll</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -76,7 +96,7 @@
 <span class="sd">    is given on the next 10 characters as an integer. The message length is the</span>
 <span class="sd">    number of characters after these 10 characters.</span>
 
-<span class="sd">    Argument</span>
+<span class="sd">    Parm</span>
 <span class="sd">       s, an open network socket.</span>
 <span class="sd">    Return</span>
 <span class="sd">       the message received on socket s as a string.</span>
@@ -114,7 +134,7 @@
 <div class="viewcode-block" id="recvFixedLength"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.PTools.recvFixedLength">[docs]</a><span class="k">def</span> <span class="nf">recvFixedLength</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">lengthMsg</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Receive a fixed length message on socket s.</span>
-<span class="sd">    Argument</span>
+<span class="sd">    Parm</span>
 <span class="sd">        lengthMsg, an integer, which is the length in characters of the </span>
 <span class="sd">                   message to receive.</span>
 <span class="sd">    Return</span>
@@ -140,7 +160,7 @@
 <span class="sd">    of the message, take at least timeOut seconds to execute this method. If no character</span>
 <span class="sd">    is received after 60 seconds, this method returns with an empty message.</span>
 
-<span class="sd">    Arguments</span>
+<span class="sd">    Parms</span>
 <span class="sd">         socket, an open network socket.</span>
 <span class="sd">         timeOut, number of seconds before timing out between fragments of the received</span>
 <span class="sd">                  message.</span>
@@ -176,12 +196,13 @@
         <span class="k">return</span> <span class="bp">None</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pieces</span><span class="p">)</span>
-</div>
+
+<span class="c"># Call a PTools function synchronously for any PGDB.</span></div>
 <div class="viewcode-block" id="sendQueryToPTools"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.PTools.sendQueryToPTools">[docs]</a><span class="k">def</span> <span class="nf">sendQueryToPTools</span><span class="p">(</span><span class="n">query</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; </span>
 <span class="sd">    Send a query to a running Pathway Tools application via a socket.</span>
 <span class="sd">    </span>
-<span class="sd">    Argument</span>
+<span class="sd">    Parm</span>
 <span class="sd">      query, a string that the Python server in Pathway Tools can evaluate. </span>
 <span class="sd">    Returns</span>
 <span class="sd">      The result of the query, as a Python object, decoded by Json.</span>
@@ -214,9 +235,8 @@
         <span class="k">return</span> <span class="n">r</span>
 </div>
 <div class="viewcode-block" id="PythonCycError"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.PTools.PythonCycError">[docs]</a><span class="k">class</span> <span class="nc">PythonCycError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Error generated by one of the module of PythonCyc due to an incorrect</span>
-<span class="sd">    use of its methods or functions.</span>
+    <span class="sd">&quot;&quot;&quot;Error generated by one of the module of PythonCyc due to an incorrect</span>
+<span class="sd">       use of its methods or functions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span>
 </div>
@@ -262,7 +282,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, PythonCyc API.
+        &copy; Copyright 2014, Mario Latendresse.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>

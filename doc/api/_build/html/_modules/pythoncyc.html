@@ -47,11 +47,31 @@
           <div class="body">
             
   <h1>Source code for pythoncyc</h1><div class="highlight"><pre>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Mario Latendresse, June 2014.</span>
+<span class="c"># Copyright (c) 2014, SRI International</span>
+<span class="c"># </span>
+<span class="c"># Permission is hereby granted, free of charge, to any person obtaining</span>
+<span class="c"># a copy of this software and associated documentation files (the</span>
+<span class="c"># &quot;Software&quot;), to deal in the Software without restriction, including</span>
+<span class="c"># without limitation the rights to use, copy, modify, merge, publish,</span>
+<span class="c"># distribute, sublicense, and/or sell copies of the Software, and to</span>
+<span class="c"># permit persons to whom the Software is furnished to do so, subject to</span>
+<span class="c"># the following conditions:</span>
+<span class="c"># </span>
+<span class="c"># The above copyright notice and this permission notice shall be</span>
+<span class="c"># included in all copies or substantial portions of the Software.</span>
+<span class="c"># </span>
+<span class="c"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,</span>
+<span class="c"># EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF</span>
+<span class="c"># MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND</span>
+<span class="c"># NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE</span>
+<span class="c"># LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION</span>
+<span class="c"># OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION</span>
+<span class="c"># WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</span>
+<span class="c"># ----------------------------------------------------------------------</span>
 
-<span class="sd">This is PythonCyc, a Python interface module to Pathway Tools.</span>
-<span class="sd">This code has been tested with Python 2.7.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module is part of PythonCyc, a Python interface module to Pathway Tools.</span>
+<span class="sd">This code has been tested with Python 2.6.</span>
 
 <span class="sd">Pathway Tools (version 18.5 and up) must be running on some machine</span>
 <span class="sd">with at least the option &#39;-python&#39;. It is also recommended</span>
@@ -66,19 +86,8 @@
 <span class="sd">its synonym so, are needed to &quot;select&quot; a PGDB by creating a PGDB object.</span>
 <span class="sd">See class PGDB in PGDB.py for information about how to use a PGDB object.</span>
 
-<span class="sd">See the README.txt file for more documentation about PythonCyc.</span>
-
-<span class="sd">For comments, questions and bug reports about PythonCyc,</span>
-<span class="sd">send an email to ptools-support@ai.sri.com</span>
-
-<span class="sd">Acknowledgments</span>
-<span class="sd">---------------</span>
-
-<span class="sd">Thanks to Eli Bogart to have inspired some implementation details</span>
-<span class="sd">of PythonCyc via PyCyc, Tomer Altman for the</span>
-<span class="sd">Pathway Tools API documentation at http://brg.ai.sri.com/ptools/api/</span>
-<span class="sd">and Daniel Weaver for suggestions to implement some specific functions.</span>
-
+<span class="sd">Please consult the tutorial.html file, under directory doc, for more information</span>
+<span class="sd">about how to use PythonCyc.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">PGDB</span> <span class="kn">import</span> <span class="n">PGDB</span>
@@ -171,7 +180,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, PythonCyc API.
+        &copy; Copyright 2014, Mario Latendresse.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>

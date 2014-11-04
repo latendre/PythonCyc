@@ -48,16 +48,33 @@
           <div class="body">
             
   <h1>Source code for pythoncyc.config</h1><div class="highlight"><pre>
+<span class="c"># Copyright (c) 2014, SRI International</span>
+<span class="c"># </span>
+<span class="c"># Permission is hereby granted, free of charge, to any person obtaining</span>
+<span class="c"># a copy of this software and associated documentation files (the</span>
+<span class="c"># &quot;Software&quot;), to deal in the Software without restriction, including</span>
+<span class="c"># without limitation the rights to use, copy, modify, merge, publish,</span>
+<span class="c"># distribute, sublicense, and/or sell copies of the Software, and to</span>
+<span class="c"># permit persons to whom the Software is furnished to do so, subject to</span>
+<span class="c"># the following conditions:</span>
+<span class="c"># </span>
+<span class="c"># The above copyright notice and this permission notice shall be</span>
+<span class="c"># included in all copies or substantial portions of the Software.</span>
+<span class="c"># </span>
+<span class="c"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,</span>
+<span class="c"># EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF</span>
+<span class="c"># MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND</span>
+<span class="c"># NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE</span>
+<span class="c"># LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION</span>
+<span class="c"># OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION</span>
+<span class="c"># WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</span>
+<span class="c"># ----------------------------------------------------------------------</span>
+
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Mario Latendresse, June 2014</span>
-
-<span class="sd">Configuration module for PythonCyc.</span>
-
 <span class="sd">This module can be used to set various parameters for PythonCyc,</span>
 <span class="sd">in particular to set debug on or off, the host name and port number</span>
 <span class="sd">of the running Pathway Tools&#39; Python server. By default, the Pathway Tools</span>
 <span class="sd">Python server is running locally on port 5008.</span>
-
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="n">_debug</span> <span class="o">=</span> <span class="bp">False</span>
@@ -83,15 +100,15 @@
     <span class="n">_debug</span> <span class="o">=</span> <span class="bp">False</span>
     <span class="k">print</span> <span class="s">&#39;Debug off.&#39;</span>
 </div>
-<div class="viewcode-block" id="set_hostname"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.config.set_hostname">[docs]</a><span class="k">def</span> <span class="nf">set_hostname</span><span class="p">(</span><span class="n">hostname</span><span class="p">):</span>
+<div class="viewcode-block" id="set_host_name"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.config.set_host_name">[docs]</a><span class="k">def</span> <span class="nf">set_host_name</span><span class="p">(</span><span class="n">hostname</span><span class="p">):</span>
     <span class="k">global</span> <span class="n">_hostname</span>
     <span class="n">_hostname</span> <span class="o">=</span> <span class="n">hostname</span>
-    <span class="k">print</span> <span class="s">&#39;Running Pathway Tools hostname set to&#39;</span><span class="p">,</span><span class="n">_hostname</span>
+    <span class="k">print</span> <span class="s">&#39;PythonCyc will communicate with Pathway Tools running on host name &#39;</span><span class="p">,</span><span class="n">_hostname</span>
 </div>
-<div class="viewcode-block" id="set_hostport"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.config.set_hostport">[docs]</a><span class="k">def</span> <span class="nf">set_hostport</span><span class="p">(</span><span class="n">hostport</span><span class="p">):</span>
+<div class="viewcode-block" id="set_host_port"><a class="viewcode-back" href="../../pythoncyc.html#pythoncyc.config.set_host_port">[docs]</a><span class="k">def</span> <span class="nf">set_host_port</span><span class="p">(</span><span class="n">hostport</span><span class="p">):</span>
     <span class="k">global</span> <span class="n">_hostport</span>
     <span class="n">_hostport</span> <span class="o">=</span> <span class="n">hostport</span>
-    <span class="k">print</span> <span class="s">&#39;Running Pathway Tools port set to&#39;</span><span class="p">,</span><span class="n">_hostport</span></div>
+    <span class="k">print</span> <span class="s">&#39;PythonCyc will communicate with Pathway Tools running on host port &#39;</span><span class="p">,</span><span class="n">_hostport</span></div>
 </pre></div>
 
           </div>
@@ -131,7 +148,7 @@
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, PythonCyc API.
+        &copy; Copyright 2014, Mario Latendresse.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
