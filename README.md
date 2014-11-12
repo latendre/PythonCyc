@@ -18,7 +18,7 @@ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-----------------------------------------------------------------------
+
 
 PythonCyc 1.0, November 2014
 ============================
@@ -39,7 +39,8 @@ Installation
 ------------
 
 Please, consult the HTML file tutorial.html under the doc directory of this
-package.
+package for the installation instruction of PythonCyc and how to start
+Pathway Tools to be able to use PythonCyc.
 
 Documentation
 -------------
@@ -47,9 +48,9 @@ Documentation
 1) For a tutorial on how to use PythonCyc, please consult the HTML file
 tutorial.html under the doc directory of this package. 
 
-2) For the API documentation of PythonCyc, please consult pythoncyc.readthedocs.org. 
+2) For the API documentation of PythonCyc, please consult http://pythoncyc.readthedocs.org. 
 
-3) For the latest news about PythonCyc, see the web page at
+3) For the latest news about PythonCyc, please consult
 http://bioinformatics.ai.sri.com/ptools/pythoncyc.html
 
 Author
