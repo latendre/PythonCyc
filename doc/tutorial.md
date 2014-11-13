@@ -67,7 +67,7 @@ and may do other operations depending on the Python installation you
 have. No error messages should be reported. In case of errors, make
 sure you have installed Python and that it is working. 
 
-<p>To test your
+To test your
 PythonCyc installation, please consult the Section [Getting Started](#gettingStarted) in this document.  
 
 ### Microsoft Windows
