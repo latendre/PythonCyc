@@ -30,5 +30,5 @@ setup(
     packages=['pythoncyc'],
     license='LICENSE',
     description='A Python interface to Pathway Tools',
-    long_description=open('README').read()
+    long_description=open('README.md').read()
     )
