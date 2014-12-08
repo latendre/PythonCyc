@@ -73,5 +73,5 @@ Acknowledgments
 
 Thanks to Eli Bogart to have inspired some implementation details of
 PythonCyc via PyCyc, Tomer Altman for the Pathway Tools API
-documentation and Daniel Weaver for suggestions to implement some
-specific functions.
+documentation, and Daniel Weaver for suggesting to implement some
+specific functions and his design, with Kai Chen, of the beautiful PythonCyc logo.
