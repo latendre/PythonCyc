@@ -315,7 +315,7 @@ class PGDB():
         Parm
            query, a string. That string should be acceptable to the Lisp Python server.
         Return
-           the result (as a Pyton object) of the execution of the query in Pathway Tools.
+           the result (as a Python object) of the execution of the query in Pathway Tools.
         """
         # Evaluate a query in the context of this PGDB.
         if self._orgid == "unknown":
@@ -474,12 +474,27 @@ class PGDB():
           no conversion is applied.
 
           Parm
-            className, a string (e.g., Reactions)
+            className, a symbol specified as a string (e.g., '|Reactions|')
 
           Returns
             list of frameids
         """
         return self.sendPgdbFnCallList('gcai', Symbol(className))
+
+    def get_class_all_subs(self, classArg):
+        """
+          Get all subclasses of the given class name for this PGDB.
+          ClassName must be exactly as Pathway Tools expect the name of the class,
+          no conversion is applied.
+
+          Parm
+            className, a symbol specified as a string (e.g., '|Reactions|') or as
+            PFrame
+
+          Returns
+            list of frameids corresponding to the subclasses of the className
+        """
+        return self.sendPgdbFnCallList('get-class-all-subs', classArg)
 
     def run_fba(self, fileName):
        """
