@@ -34,11 +34,9 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  (we recommend version 2.6 or above, but it most likely work with any
  2.x version).  
 
- For the complete API documentation of PythonCyc, please consult   
- [PythonCyc API](http://pythoncyc.readthedocs.org).
+ For the complete API documentation of PythonCyc, please consult [PythonCyc API](http://pythoncyc.readthedocs.org).
 
- For the latest news about PythonCyc, please consult the 
- [PythonCyc web page](http://brg.ai.sri.com/ptools/pythoncyc.html).
+ For the latest news about PythonCyc, please consult the [PythonCyc web page](http://brg.ai.sri.com/ptools/pythoncyc.html).
 
 ## Installation
 

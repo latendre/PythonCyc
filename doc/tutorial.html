@@ -51,7 +51,12 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 <p>We assume that you have downloaded PythonCyc from
 <a href="https://github.com/latendre/PythonCyc">PythonCyc at GitHub</a>.
 This may be done by using git cloning or by downloading the zip
-file of PythonCyc from GitHub.
+file of PythonCyc from GitHub. If downloading the zip file, you
+will need to unpack it using the <tt>unzip</tt> command in some
+directory of your choice.
+</p>
+
+<p>
 The next step is to make PythonCyc accessible from your running Python
 interpreter. To do so, install PythonCyc according to one of the
 following platforms.  </p>
@@ -60,7 +65,7 @@ following platforms.  </p>
 
 <p>
 Open a terminal window and change your directory to the location where
-you unpacked the PythonCyc package. You must have the file setup.py, and the subdirectory pythoncyc, 
+you unpacked or cloned the PythonCyc package. You must have the file setup.py, and the subdirectory pythoncyc, 
 in that directory. Assuming that 'shell>'
 is the prompt of your current Unix shell, execute the following
 command:
@@ -86,7 +91,7 @@ href="#gettingStarted">Getting Started</a> in this document.  </p>
 <p>
 On a Microsoft Windows platform, starts a command prompt window using
 the start/Accessories menu, then change the directory to the location
-where you unpacked the PythonCyc package. You must have the file
+where you unpacked or cloned the PythonCyc package. You must have the file
 <tt>setup.py</tt>, and the subdirectory <tt>pythoncyc</tt>, in that directory . 
 Then, at the command prompt, execute the following command:
 </p>
@@ -312,7 +317,7 @@ conversion on letters).
 
 <p>Advanced technical note: all PFrames created using a PGDB object are
 included in a Python dictionary bound to an attribute, of that PGDB
-object, called "frames". The keys of that dictionary are the frame ids
+object, called 'frames'. The keys of that dictionary are the frame ids
 of the PFrames converted to valid Python identifiers. The __getattr__
 and __getitem__ methods of the PGDB class were written in such a way
 that such an expression as 'meta.trp' searches in the dictionary for a
@@ -997,14 +1002,6 @@ pgdb = create_pgdb_with_compounds_and_reactions('ecoli')
 For comments, questions and bug reports about PythonCyc,
 send an email to ptools-support@ai.sri.com
 </p>
-
-<h2>Acknowledgments</h2>
-
-<p>Eli Bogart inspired some implementation details of PythonCyc from
-its PyCyc package, Tomer Altman wrote the original Pathway Tools Lisp
-API documentation at http://brg.ai.sri.com/ptools/api/ and Daniel
-Weaver suggested to implement some specific functions to access the
-functionality of FBA in Pathway Tools.  </p>
 
 <hr>
 </body>
