@@ -783,8 +783,8 @@ class PGDB():
       Return value
           A list of compound frame ids. 
       """
-      kwargs = {'from-compartment': from_compartment, 
-                'to-compartment':   to_compartment, 
+      kwargs = {'from-compartment': may_be_frameid(from_compartment), 
+                'to-compartment':   may_be_frameid(to_compartment), 
                 'primary-only?':    primary_only}
       return self.sendPgdbFnCallList('all-transported-chemicals', **kwargs)
   
@@ -1196,7 +1196,7 @@ class PGDB():
       Return value
           A list of children of the class CCO. 
       """
-      kwargs = {'sides': sides, 'default-compartment': default_compartment}
+      kwargs = {'sides': sides, 'default-compartment': may_be_frameid(default_compartment)}
       return self.sendPgdbFnCallList('compartments-of-reaction', may_be_frameid(rxn), **kwargs)
  
     def transported_chemicals(self, rxn, side=None, primary_only=None, 
@@ -1235,9 +1235,9 @@ class PGDB():
       """
       kwargs = {'side':             side,          
                 'primary-only?':    primary_only,  
-                'from-compartment': from_compartment,
-                'to-compartment':   to_compartment,
-                'show-compartment': show_compartment }
+                'from-compartment': may_be_frameid(from_compartment),
+                'to-compartment':   may_be_frameid(to_compartment),
+                'show-compartment': may_be_frameid(show_compartment)}
       return self.sendPgdbFnCallList('transported-chemicals', may_be_frameid(rxn), **kwargs)
 
     def get_predecessors(self, rxn, pwy):
@@ -2076,7 +2076,7 @@ class PGDB():
       Return value
           A list of instances of class Proteins. 
       """
-      kwargs = {'membranes': membranes, 'method': method}
+      kwargs = {'membranes': may_be_frameid(membranes), 'method': method}
       return self.sendPgdbFnCallList('all-transporters-across', **kwargs)
   
     def autocatalytic_reactions_of_enzyme(self, protein):
@@ -3084,14 +3084,12 @@ class PGDB():
               reactions where cpd, or a parent of cpd, appears as a
               substrate. 
           transport_only
-              Keyword, If True, return only transport
-              reactions. 
+              Keyword, If True, return only transport reactions. 
           compartment
               Keyword, If True, return only reactions within
               the specified compartment. 
           enzymatic
-              Keyword, If True, return only enzymatic
-              reactions. 
+              Keyword, If True, return only enzymatic reactions. 
 
       Return value
           A list of children of class Reactions. 
@@ -3265,7 +3263,7 @@ class PGDB():
                 'italicize-species?':            italicize_species,
                 'short-name?':                   short_name,  
                 'species-initials':              species_initials,
-                'primary-class':                 primary_class}
+                'primary-class':                 Symbol(primary_class)}
       return self.sendPgdbFnCall('get-name-string', may_be_frameid(item), **kwargs)
   
     def full_enzyme_name(self, enzyme, use_frame_name=None, name=None, activity_names=None):
