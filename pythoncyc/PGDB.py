@@ -29,6 +29,22 @@ if 'IPython' in sys.modules:
     from IPython.display import display, HTML
 
 def may_be_frameid(x):
+    """
+    This fn is useful to convert a string to a symbol
+    or a list of strings to a list of symbols, to make sure it is interpreted
+    as a frame id; but not to apply any conversion when the arg is not a string
+    or a list of strings. All functions of PGDB.py apply this fn on the
+    arguments that need a frame ids or PFrames.
+
+    Parm 
+           x: a Python object.
+
+    Side Effect
+           Raise an error, if x is not None, String, PFrame, or a list of these.
+
+    Returns
+           A symbol, list of symbols, or x unchanged.
+    """
     if x == None:
         return None
     elif isinstance(x,list):
@@ -37,7 +53,7 @@ def may_be_frameid(x):
         return x
     elif isinstance(x,basestring):
         return Symbol(x)
-    else: raise PythonCycError('Error: may_be_frameid does not know how to convert {0}.'.format(x))
+    else: raise PythonCycError('Error: the argument must a string or a PFrame but given {0}.'.format(x))
 
 
 def mkey(s):
@@ -780,8 +796,8 @@ class PGDB():
       Return value
           A list of compound frame ids. 
       """
-      kwargs = {'from-compartment': from_compartment, 
-                'to-compartment':   to_compartment, 
+      kwargs = {'from-compartment': may_be_frameid(from_compartment), 
+                'to-compartment':   may_be_frameid(to_compartment), 
                 'primary-only?':    primary_only}
       return self.sendPgdbFnCallList('all-transported-chemicals', **kwargs)
   
@@ -1193,7 +1209,7 @@ class PGDB():
       Return value
           A list of children of the class CCO. 
       """
-      kwargs = {'sides': sides, 'default-compartment': default_compartment}
+      kwargs = {'sides': sides, 'default-compartment': may_be_frameid(default_compartment)}
       return self.sendPgdbFnCallList('compartments-of-reaction', may_be_frameid(rxn), **kwargs)
  
     def transported_chemicals(self, rxn, side=None, primary_only=None, 
@@ -1232,9 +1248,9 @@ class PGDB():
       """
       kwargs = {'side':             side,          
                 'primary-only?':    primary_only,  
-                'from-compartment': from_compartment,
-                'to-compartment':   to_compartment,
-                'show-compartment': show_compartment }
+                'from-compartment': may_be_frameid(from_compartment),
+                'to-compartment':   may_be_frameid(to_compartment),
+                'show-compartment': may_be_frameid(show_compartment)}
       return self.sendPgdbFnCallList('transported-chemicals', may_be_frameid(rxn), **kwargs)
 
     def get_predecessors(self, rxn, pwy):
@@ -2073,7 +2089,7 @@ class PGDB():
       Return value
           A list of instances of class Proteins. 
       """
-      kwargs = {'membranes': membranes, 'method': method}
+      kwargs = {'membranes': may_be_frameid(membranes), 'method': method}
       return self.sendPgdbFnCallList('all-transporters-across', **kwargs)
   
     def autocatalytic_reactions_of_enzyme(self, protein):
@@ -3081,14 +3097,12 @@ class PGDB():
               reactions where cpd, or a parent of cpd, appears as a
               substrate. 
           transport_only
-              Keyword, If True, return only transport
-              reactions. 
+              Keyword, If True, return only transport reactions. 
           compartment
               Keyword, If True, return only reactions within
               the specified compartment. 
           enzymatic
-              Keyword, If True, return only enzymatic
-              reactions. 
+              Keyword, If True, return only enzymatic reactions. 
 
       Return value
           A list of children of class Reactions. 
@@ -3262,7 +3276,7 @@ class PGDB():
                 'italicize-species?':            italicize_species,
                 'short-name?':                   short_name,  
                 'species-initials':              species_initials,
-                'primary-class':                 primary_class}
+                'primary-class':                 Symbol(primary_class)}
       return self.sendPgdbFnCall('get-name-string', may_be_frameid(item), **kwargs)
   
     def full_enzyme_name(self, enzyme, use_frame_name=None, name=None, activity_names=None):
