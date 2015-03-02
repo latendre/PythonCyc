@@ -346,9 +346,9 @@ class PGDB():
    
     def sendPgdbFnCall(self, fn, *args, **kwargs):
         """
-        Send a PGDB query to Pathway Tools based on function fn and arguments args and kwargs (keyword args)
-        and return the result. Note that if multiple values are returned by the fn, the Pathway Tools Python server 
-        transforms them into a list.
+        Send a PGDB query to Pathway Tools based on function fn and arguments args and
+        kwargs (keyword args) and return the result. If multiple values are
+        returned by fn, the Pathway Tools Python server transforms them into a list.
         """
         fnCall = prepareFnCall(fn, *args, **kwargs)
         return self.sendPgdbQuery(fnCall)
@@ -378,11 +378,8 @@ class PGDB():
 
         Parms
            realClassName, a string, the real name of the class to retrieve.
-           attr,          a string, the name used by the caller to retrieve that class.
            getInstancesData, boolean, True => get the slots and data of all instances.
 
-           Note: attr may differ from realClassName because we allow '_' to be used
-                 instead of '-' and the attr is not case sensitive whereas realClassName is.
         Returns
             A PFrame representing the class with all its slot names
             as Python attributes.
@@ -454,16 +451,16 @@ class PGDB():
                
     def is_an_instance_name(self, frameid):
         """ 
-        Similar to method is_a_class_name but for frame objects (instances).
-        If frame id is a real frame id of an object of this PGDB, returns it as is.
-        If not, try to convert it to a real frame id by transforming cases of
-        letters and underscores to dashes.
+        Similar to method is_a_class_name but for a frame that is not a class.
+        If frameid is a real frame id of an object of this PGDB, returns frameid as is.
+        If not, try to convert frameid to an exist frame id by transforming cases of
+        letters and underscores to dashes in frameid.
 
             Parm
                frameid, a string.
 
             Returns
-               a string representing an existing frame in the PGDB.
+               a string representing an existing frame id in the PGDB.
         """
         return self.sendPgdbFnCallBool('frameid-instance-p', Symbol(frameid))
 
@@ -484,15 +481,15 @@ class PGDB():
     def get_class_all_subs(self, classArg):
         """
           Get all subclasses of the given class name for this PGDB.
-          ClassName must be exactly as Pathway Tools expect the name of the class,
-          no conversion is applied.
+          If classArg is a string, it must be exactly as Pathway Tools expect the name of the class,
+          no conversion is applied. 
 
           Parm
-            className, a symbol specified as a string (e.g., '|Reactions|') or as
-            PFrame
+            classArg, a symbol specified as a string (e.g., '|Reactions|') or as
+            a PFrame.
 
           Returns
-            list of frameids corresponding to the subclasses of the className
+            list of frameids corresponding to the subclasses of the classArg.
         """
         return self.sendPgdbFnCallList('get-class-all-subs', classArg)
 
