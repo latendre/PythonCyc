@@ -46,7 +46,8 @@ Documentation
 -------------
 
 1) For a tutorial on how to use PythonCyc, please consult the HTML file
-tutorial.html under the doc directory of this package. 
+tutorial.html under the doc directory of this package, or go directly
+to the tutorial by clicking the following link https://github.com/latendre/PythonCyc/blob/master/doc/tutorial.md
 
 2) For the API documentation of PythonCyc, please consult http://pythoncyc.readthedocs.org. 
 
