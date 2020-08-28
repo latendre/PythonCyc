@@ -1,3 +1,23 @@
+**************************************************************************************** 
+****************************************************************************************
+*
+*
+*
+*
+
+THIS VERSION OF PYTHONCYC BASED ON PYTHON 2.6-2.7 IS NO LONGER MAINTAINED AT THIS REPOSITORY. 
+
+FOR A NEW VERSION BASED ON PYTHON 3, PLEASE VISIT http://github.com/ecocyc/PythonCyc 
+
+*
+*
+*
+*
+***************************************************************************************
+***************************************************************************************
+
+
+
 Copyright (c) 2014, SRI International
 
 Permission is hereby granted, free of charge, to any person obtaining
